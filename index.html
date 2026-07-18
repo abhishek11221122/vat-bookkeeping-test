@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benison Solvers — VAT Bookkeeping Assessment</title>
+<link rel="icon" href="https://static.wixstatic.com/media/f09cc1_e90b119075904102bb78503477c3063d~mv2.png/v1/fill/w_203,h_54,al_c,q_95,usm_0.66_1.00_0.01,enc_avif,quality_auto/biglogo.png">
+<style>
+  :root {
+    --ink: #12172B;
+    --ink-soft: #1C2340;
+    --paper: #F7F6F2;
+    --paper-dim: #EDEBE4;
+    --text: #22263A;
+    --text-mute: #6B7080;
+    --gold: #C9A24B;
+    --gold-deep: #A9822F;
+    --alert: #C0503D;
+    --safe: #4C7A63;
+    --line: rgba(18,23,43,0.12);
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--paper-dim); color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    -webkit-user-select:none; user-select:none;
+  }
+  #app{min-height:100vh; display:flex; flex-direction:column;}
+
+  .statusbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px; background:var(--paper); color:var(--ink);
+    border-bottom:2px solid var(--gold-deep);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .brand{display:flex; align-items:center; gap:12px; font-family:var(--serif); font-size:20px; letter-spacing:0.01em; color:var(--ink); font-weight:600;}
+  .brand .logo-chip{background:#fff; border-radius:6px; padding:6px 12px; display:flex; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+  .brand img{height:38px; width:auto; display:block; max-height:50px; object-fit:contain;}
+  .status-right{display:flex; align-items:center; gap:16px; font-family:var(--mono); font-size:13px; color:var(--text-mute); flex-wrap: wrap;}
+  .badge{
+    display:flex; align-items:center; gap:7px; padding:6px 12px; border-radius:20px;
+    border:1px solid var(--line); background:rgba(18,23,43,0.03);
+  }
+  .dot{width:7px;height:7px;border-radius:50%;}
+  .dot.safe{background:var(--safe); box-shadow:0 0 8px var(--safe);}
+  .dot.warn{background:var(--alert); box-shadow:0 0 8px var(--alert); animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+
+  .stage{flex:1; display:flex; align-items:center; justify-content:center; padding:36px 20px;}
+
+  .card{
+    background:var(--paper); border-radius:4px; width:100%; max-width:620px;
+    padding:44px 44px 36px; box-shadow:0 12px 32px rgba(18,23,43,0.12);
+    position:relative;
+  }
+  .card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg, var(--gold-deep), var(--gold));
+  }
+  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-mute); margin-bottom:10px;}
+  h1{font-family:var(--serif); font-size:30px; margin:0 0 6px; font-weight:500; color:var(--ink);}
+  .sub{color:var(--text-mute); font-size:14.5px; line-height:1.6; margin:0 0 28px;}
+
+  label{display:block; font-size:12.5px; color:var(--text-mute); margin-bottom:6px; font-family:var(--mono); text-transform:uppercase; letter-spacing:0.06em;}
+  .field{margin-bottom:18px;}
+  input[type=text], input[type=email], input[type=tel]{
+    width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:3px;
+    font-size:15px; font-family:var(--sans); background:#fff; color:var(--text);
+    -webkit-user-select:text; user-select:text;
+  }
+  input:focus{outline:none; border-color:var(--gold-deep); box-shadow:0 0 0 3px rgba(201,162,75,0.18);}
+  input[readonly]{background:var(--paper-dim); color:var(--text-mute); cursor:not-allowed;}
+
+  .rules{background:var(--paper-dim); border-radius:3px; padding:18px 20px; margin:22px 0 28px; font-size:13.5px; line-height:1.7; color:var(--text);}
+  .rules div{display:flex; gap:10px; margin-bottom:6px;}
+  .rules div:last-child{margin-bottom:0;}
+  .rules .tick{color:var(--gold-deep); font-weight:bold;}
+
+  .btn{
+    appearance:none; border:none; cursor:pointer; font-family:var(--sans); font-weight:600;
+    font-size:14.5px; padding:13px 26px; border-radius:3px; letter-spacing:0.01em;
+    background:var(--ink); color:var(--paper); transition:transform .12s ease, background .15s ease;
+  }
+  .btn:hover{background:var(--ink-soft);}
+  .btn:active{transform:scale(0.98);}
+  .btn.primary{background:var(--gold-deep); color:#fff;}
+  .btn.primary:hover{background:#8f6f28;}
+  .btn.block{width:100%;}
+  .btn:disabled{opacity:0.45; cursor:not-allowed;}
+  .btn.ghost{background:transparent; color:var(--ink); border:1px solid var(--line);}
+  .btn.danger{background:var(--alert); color:#fff;}
+  .btn.danger:hover{background:#a03a2a;}
+  .btn.success{background:var(--safe); color:#fff;}
+  .btn.success:hover{background:#3a5f4e;}
+
+  .err{color:var(--alert); font-size:13px; margin-top:-10px; margin-bottom:14px; display:none;}
+
+  .test-shell{width:100%; max-width:800px;}
+  .test-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; flex-wrap: wrap; gap: 10px;}
+  .qcount{font-family:var(--mono); font-size:12.5px; color:var(--text-mute); letter-spacing:0.04em;}
+  .timer{
+    font-family:var(--mono); font-size:20px; color:var(--ink); background:rgba(18,23,43,0.05);
+    padding:8px 16px; border-radius:3px; border:1px solid var(--line); letter-spacing:0.05em;
+  }
+  .timer.low{color:var(--alert); border-color:var(--alert); animation:pulse 1s infinite;}
+
+  .progress-wrap{width:100%; height:4px; background:var(--paper-dim); border-radius:2px; margin-bottom:20px; overflow:hidden;}
+  .progress-bar{height:100%; background:linear-gradient(90deg, var(--gold-deep), var(--gold)); width:0%; transition:width 0.3s ease;}
+
+  .qcard{background:var(--paper); border-radius:4px; padding:36px 40px; position:relative;}
+  .qcard::before{content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, var(--gold-deep), var(--gold));}
+  .qnum{font-family:var(--mono); font-size:12px; color:var(--gold-deep); letter-spacing:0.1em; margin-bottom:10px;}
+  .qtext{font-family:var(--serif); font-size:21px; line-height:1.5; margin:0 0 26px; color:var(--ink);}
+  .opt{
+    display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid var(--line);
+    border-radius:3px; margin-bottom:10px; cursor:pointer; font-size:15px; transition:border-color .12s, background .12s;
+  }
+  .opt:hover{border-color:var(--gold-deep);}
+  .opt.selected{border-color:var(--gold-deep); background:rgba(201,162,75,0.08);}
+  .opt .letter{
+    width:26px; height:26px; border-radius:50%; border:1px solid var(--line); display:flex;
+    align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; flex-shrink:0; color:var(--text-mute);
+  }
+  .opt.selected .letter{background:var(--gold-deep); border-color:var(--gold-deep); color:#fff;}
+  .opt.review-flag{border-color:var(--gold); border-style:dashed;}
+
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:24px; flex-wrap: wrap; gap: 12px;}
+  .dots{display:flex; gap:7px; flex-wrap: wrap;}
+  .navdot{width:11px;height:11px;border-radius:50%; background:rgba(18,23,43,0.15); cursor:pointer; transition: all 0.2s; border: none; padding: 0;}
+  .navdot.answered{background:var(--gold);}
+  .navdot.current{outline:2px solid rgba(18,23,43,0.35); outline-offset:2px;}
+  .navdot.review{background:var(--gold-deep); opacity:0.5;}
+  .navdot:hover{transform:scale(1.2);}
+
+  .review-panel {
+    background:var(--paper-dim);
+    border-radius:3px;
+    padding:12px 16px;
+    margin-top:12px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:13px;
+    flex-wrap:wrap;
+  }
+  .review-panel label {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    text-transform:none;
+    font-family:var(--sans);
+    font-size:13px;
+    color:var(--text);
+    cursor:pointer;
+  }
+  .review-panel input[type="checkbox"] {
+    width:16px;
+    height:16px;
+    cursor:pointer;
+  }
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(10,12,24,0.92); display:none;
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .warncard{background:var(--paper); border-radius:4px; padding:38px; max-width:440px; text-align:center; border-top:4px solid var(--alert);}
+  .warncard h2{font-family:var(--serif); color:var(--alert); margin:0 0 10px; font-size:23px;}
+  .warncard p{color:var(--text-mute); font-size:14px; line-height:1.6; margin:0 0 22px;}
+  .strike-count{font-family:var(--mono); font-size:13px; color:var(--alert); margin-bottom:20px;}
+
+  .score-hero{text-align:center; margin-bottom:8px;}
+  .score-num{font-family:var(--serif); font-size:64px; color:var(--ink); line-height:1;}
+  .score-label{font-family:var(--mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-mute); margin-top:8px;}
+  
+  .log{margin-top:24px; border-top:1px solid var(--line); padding-top:20px;}
+  .log-title{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-mute); margin-bottom:12px;}
+  .log-row{display:flex; justify-content:space-between; font-size:13.5px; padding:9px 0; border-bottom:1px dashed var(--line);}
+  .log-row:last-child{border-bottom:none;}
+  .log-time{font-family:var(--mono); color:var(--text-mute); font-size:12px;}
+  .log-empty{font-size:13.5px; color:var(--safe); font-family:var(--mono);}
+
+  .footnote{font-size:12px; color:var(--text-mute); margin-top:26px; line-height:1.6; border-top:1px solid var(--line); padding-top:16px;}
+
+  .answer-review {
+    margin-top: 24px;
+    border-top: 2px solid var(--gold);
+    padding-top: 20px;
+  }
+  .answer-review h3 {
+    font-family: var(--serif);
+    font-size: 20px;
+    margin: 0 0 16px 0;
+    color: var(--ink);
+  }
+  .review-item {
+    padding: 14px 16px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--line);
+    background: var(--paper-dim);
+  }
+  .review-item.correct {
+    border-left-color: var(--safe);
+    background: rgba(76, 122, 99, 0.08);
+  }
+  .review-item.wrong {
+    border-left-color: var(--alert);
+    background: rgba(192, 80, 61, 0.08);
+  }
+  .review-item .r-q {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .review-item .r-answers {
+    font-size: 13px;
+    color: var(--text-mute);
+  }
+  .review-item .r-answers .correct-answer {
+    color: var(--safe);
+    font-weight: 600;
+  }
+  .review-item .r-answers .wrong-answer {
+    color: var(--alert);
+    font-weight: 600;
+  }
+
+  .certificate {
+    background: var(--paper);
+    border: 3px double var(--gold);
+    padding: 40px 30px;
+    margin: 24px 0;
+    text-align: center;
+    position: relative;
+    border-radius: 4px;
+  }
+  .certificate::before {
+    content: '✦';
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--paper);
+    padding: 0 12px;
+    font-size: 20px;
+    color: var(--gold);
+  }
+  .certificate .cert-logo {
+    max-width: 200px;
+    height: auto;
+    margin: 0 auto 12px;
+    display: block;
+  }
+  .certificate .cert-badge {
+    font-size: 48px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .certificate h2 {
+    font-family: var(--serif);
+    font-size: 28px;
+    margin: 0 0 4px 0;
+    color: var(--ink);
+    letter-spacing: 2px;
+  }
+  .certificate .cert-sub {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .certificate .cert-name {
+    font-family: var(--serif);
+    font-size: 32px;
+    color: var(--gold-deep);
+    margin: 8px 0;
+    font-weight: 600;
+  }
+  .certificate .cert-detail {
+    font-size: 14px;
+    color: var(--text-mute);
+    line-height: 1.8;
+  }
+  .certificate .cert-score {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 12px 0;
+  }
+  .certificate .cert-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--text-mute);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .certificate .cert-footer span {
+    font-family: var(--mono);
+  }
+  .certificate .established {
+    font-size: 13px;
+    color: var(--gold-deep);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .card, .qcard { padding: 24px 16px; }
+    .statusbar { padding: 12px 16px; flex-direction: column; align-items: stretch; }
+    .brand { font-size: 17px; }
+    .status-right { justify-content: space-between; }
+    .qtext { font-size: 18px; }
+    .test-top { flex-direction: column; align-items: stretch; }
+    .nav-row { flex-direction: column; align-items: stretch; }
+    .dots { justify-content: center; }
+    .score-num { font-size: 48px; }
+    .certificate { padding: 24px 16px; }
+    .certificate .cert-name { font-size: 24px; }
+    .certificate .cert-logo { max-width: 150px; }
+  }
+
+  @media print {
+    .statusbar, .btn, .btn-group, .footnote, .no-print { display: none !important; }
+    .certificate { border: 2px solid #000; box-shadow: none; }
+    body { background: #fff; }
+    .card { box-shadow: none; }
+    .review-item { break-inside: avoid; }
+    .answer-review { display: block !important; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="statusbar">
+    <div class="brand">
+      <span class="logo-chip">
+        <img src="https://static.wixstatic.com/media/f09cc1_e90b119075904102bb78503477c3063d~mv2.png/v1/fill/w_532,h_141,al_c,lg_1,q_95,enc_avif,quality_auto/biglogo.png" alt="Benison Solvers" id="companyLogo">
+      </span>
+      Benison Solvers
+    </div>
+    <div class="status-right">
+      <span id="phaseLabel">Registration</span>
+      <div class="badge" id="integrityBadge">
+        <span class="dot safe" id="integrityDot"></span>
+        <span id="integrityText">Secure</span>
+      </div>
+    </div>
+  </div>
+  <div class="stage" id="stage"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="warncard">
+    <h2 id="warnTitle">Focus lost</h2>
+    <p id="warnBody">You navigated away from the assessment window. This has been logged.</p>
+    <div class="strike-count" id="strikeCount"></div>
+    <button class="btn primary" id="resumeBtn">Resume in fullscreen</button>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="warncard" style="border-top-color: var(--gold);">
+    <h2 style="color: var(--ink);">Submit Assessment?</h2>
+    <p>You have answered <span id="confirmAnswered">0</span> of <span id="confirmTotal">0</span> questions. <span id="confirmUnanswered"></span></p>
+    <p style="font-size: 12px; color: var(--text-mute);">This action cannot be undone.</p>
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap;">
+      <button class="btn ghost" id="confirmCancel">Review answers</button>
+      <button class="btn primary" id="confirmSubmit">Submit now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ============================================================
+  // SUPABASE CONFIG - YOUR VALUES
+  // ============================================================
+  const SUPABASE_URL = "https://rbcjfecerhonpyyoxrre.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_q-7geKIhAgKh8aiGPL9vLA_ZSGC7xeO";
+  const USE_SUPABASE = true;
+
+  // ============================================================
+  // ANTI-CHEATING SETTINGS
+  // ============================================================
+  const MAX_FOCUS_LOSS = 5;
+  let focusLossCount = 0;
+  let hasMultipleMonitors = false;
+  let pointerLockAttempts = 0;
+
+  async function saveResultToSupabase(payload){
+    if(!USE_SUPABASE){
+      console.log("Supabase not configured — result not saved:", payload);
+      return;
+    }
+    try{
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/candidates`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify(payload)
+      });
+      if(!response.ok) {
+        console.error("Supabase save failed:", response.status);
+      }
+    }catch(e){
+      console.error("Could not save result to Supabase:", e);
+    }
+  }
+
+  // ============================================================
+  // LOAD QUESTIONS FROM SUPABASE
+  // ============================================================
+  async function loadQuestionsFromSupabase() {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/questions?order=id.asc`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to load questions');
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return data.map(q => ({
+          q: q.question || q.q || '',
+          opts: q.options || q.opts || ['', '', '', ''],
+          correct: q.correct_index || q.correct || 0
+        }));
+      }
+      return null;
+    } catch(e) {
+      console.error('Error loading questions from Supabase:', e);
+      return null;
+    }
+  }
+
+  // ============================================================
+  // LOAD SETTINGS FROM SUPABASE
+  // ============================================================
+  async function loadSettingsFromSupabase() {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/assessment_settings?limit=1`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to load settings');
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return data[0];
+      }
+      return null;
+    } catch(e) {
+      console.error('Error loading settings from Supabase:', e);
+      return null;
+    }
+  }
+
+  // ============================================================
+  // STATE
+  // ============================================================
+  const stage = document.getElementById('stage');
+  const phaseLabel = document.getElementById('phaseLabel');
+  const overlay = document.getElementById('overlay');
+  const confirmOverlay = document.getElementById('confirmOverlay');
+  const warnTitle = document.getElementById('warnTitle');
+  const warnBody = document.getElementById('warnBody');
+  const strikeCountEl = document.getElementById('strikeCount');
+  const resumeBtn = document.getElementById('resumeBtn');
+  const integrityDot = document.getElementById('integrityDot');
+  const integrityText = document.getElementById('integrityText');
+
+  let candidate = {};
+  let violations = [];
+  let strikes = 0;
+  let timerInterval = null;
+  let secondsLeft = 480; // Default 8 minutes
+  let current = 0;
+  let answers = {};
+  let locked = false;
+  let inTest = false;
+  let reviewFlags = {};
+  let startTime = null;
+  let shuffledBank = [];
+  let resultsData = null;
+  let PASS_THRESHOLD = 50;
+  let MAX_STRIKES = 3;
+  let TEST_SECONDS = 480;
+
+  // ============================================================
+  // QUESTION BANK (FALLBACK)
+  // ============================================================
+  const FALLBACK_BANK = [
+    { q: "What is the current UK standard rate of VAT?", opts: ["17.5%", "20%", "5%", "25%"], correct: 1 },
+    { q: "As of 2026, what is the VAT registration threshold for UK taxable turnover?", opts: ["£85,000", "£90,000", "£100,000", "There is no threshold"], correct: 1 },
+    { q: "Over what period is the VAT registration threshold assessed?", opts: ["The current tax year only", "A rolling 12-month period", "A single calendar month", "A 3-year average"], correct: 1 },
+    { q: "A business sells children's clothing in the UK. How is this typically treated for VAT?", opts: ["Standard-rated (20%)", "Reduced-rated (5%)", "Zero-rated (0%)", "Exempt"], correct: 2 },
+    { q: "What is the key bookkeeping difference between a zero-rated and an exempt supply?", opts: ["There is no difference", "Zero-rated sales are VAT-taxable at 0% so input VAT can still be reclaimed; exempt supplies fall outside VAT entirely and input VAT can't be reclaimed", "Exempt supplies still appear on the VAT return; zero-rated ones don't", "Only exempt supplies count toward the registration threshold"], correct: 1 },
+    { q: "On a standard UK VAT return, what does Box 1 represent?", opts: ["VAT reclaimed on purchases", "Total value of sales excluding VAT", "VAT due on sales and outputs", "Total value of purchases excluding VAT"], correct: 2 },
+    { q: "Under Making Tax Digital (MTD) for VAT, what is a core bookkeeping requirement?", opts: ["Records may be kept on paper as long as totals are accurate", "VAT records must be kept digitally and submitted via compatible software", "Only businesses over £1 million turnover need digital records", "MTD only applies to the annual VAT return, not quarterly ones"], correct: 1 },
+    { q: "A UK VAT-registered business receives an invoice from an overseas supplier subject to the reverse charge. What does the bookkeeper do?", opts: ["Ignore it since no UK VAT was charged", "Account for output VAT and input VAT on the same return, as if the business supplied the service to itself", "Ask the supplier to reissue the invoice with UK VAT added", "Record it as an exempt purchase"], correct: 1 },
+    { q: "A sole trader's VAT-inclusive sale is £120. What is the VAT element at the standard rate?", opts: ["£24", "£20", "£12", "£100"], correct: 1 },
+    { q: "What happens if a business's taxable turnover falls below the deregistration threshold?", opts: ["VAT registration is cancelled automatically with no application needed", "The business may apply to HMRC to deregister", "Nothing changes; deregistration isn't possible", "The standard rate drops to the reduced rate"], correct: 1 },
+  ];
+
+  // ============================================================
+  // ANTI-CHEATING: MULTI-MONITOR DETECTION
+  // ============================================================
+  function detectMultipleMonitors() {
+    const screenWidth = window.screen.width;
+    const availWidth = window.screen.availWidth;
+    
+    // Check if screen is wider than typical single monitor
+    if (screenWidth > 1920 || Math.abs(availWidth - screenWidth) > 100) {
+      return true;
+    }
+    
+    // Check for extended display (limited browser support)
+    if (window.screen.isExtended !== undefined && window.screen.isExtended) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  function checkMultiMonitor() {
+    if (detectMultipleMonitors()) {
+      hasMultipleMonitors = true;
+      logViolation('multi-monitor', 'Multiple monitors detected');
+      return true;
+    }
+    return false;
+  }
+
+  // ============================================================
+  // ANTI-CHEATING: FOCUS TRACKING
+  // ============================================================
+  window.addEventListener('blur', () => {
+    if (!inTest || locked) return;
+    
+    focusLossCount++;
+    logViolation('focus-loss', `Window lost focus (${focusLossCount})`);
+    
+    if (focusLossCount >= MAX_FOCUS_LOSS) {
+      showViolation('excessive-focus-loss', 
+        'Multiple focus changes - possible screen switching', 
+        '⚠️ Focus Lost Multiple Times', 
+        'The test has detected multiple focus changes. Please keep the test window in focus.');
+    }
+  });
+
+  // ============================================================
+  // ANTI-CHEATING: POINTER LOCK
+  // ============================================================
+  function requestPointerLock() {
+    if (!inTest || locked) return;
+    const element = document.documentElement;
+    if (element.requestPointerLock) {
+      element.requestPointerLock().catch(() => {
+        pointerLockAttempts++;
+        if (pointerLockAttempts < 3) {
+          setTimeout(requestPointerLock, 1000);
+        }
+      });
+    }
+  }
+
+  document.addEventListener('pointerlockchange', () => {
+    if (inTest && document.pointerLockElement === null && !locked) {
+      logViolation('pointer-lock', 'Mouse left test area');
+      if (!locked) {
+        setTimeout(requestPointerLock, 500);
+      }
+    }
+  });
+
+  document.addEventListener('pointerlockerror', () => {
+    if (inTest && !locked) {
+      logViolation('pointer-error', 'Pointer lock failed');
+    }
+  });
+
+  // ============================================================
+  // ANTI-CHEATING: WINDOW POSITION TRACKING
+  // ============================================================
+  let windowPosition = { x: 0, y: 0 };
+
+  function trackWindowPosition() {
+    if (!inTest || locked) return;
+    const newX = window.screenX;
+    const newY = window.screenY;
+    
+    if (windowPosition.x !== 0 || windowPosition.y !== 0) {
+      if (Math.abs(newX - windowPosition.x) > 100 || Math.abs(newY - windowPosition.y) > 100) {
+        logViolation('window-moved', 'Window moved between displays');
+      }
+    }
+    windowPosition = { x: newX, y: newY };
+  }
+
+  // ============================================================
+  // ANTI-CHEATING: KEYBOARD SHORTCUT BLOCKING
+  // ============================================================
+  document.addEventListener('keydown', (e) => {
+    if (!inTest || locked) return;
+    const k = e.key.toLowerCase();
+    const blockedCombo = (e.ctrlKey || e.metaKey) && ['c','v','x','a','u','s','p','r','t'].includes(k);
+    const devtools = k === 'f12' || ((e.ctrlKey||e.metaKey) && e.shiftKey && ['i','j','c'].includes(k));
+    if (blockedCombo || devtools) {
+      e.preventDefault();
+      logViolation('shortcut', `Blocked shortcut (${(e.ctrlKey?'Ctrl+':'')}${e.key.toUpperCase()})`);
+    }
+  });
+
+  document.addEventListener('contextmenu', e => { if(inTest) e.preventDefault(); });
+  document.addEventListener('copy', e => { if(inTest) e.preventDefault(); });
+  document.addEventListener('paste', e => { if(inTest) e.preventDefault(); });
+
+  // ============================================================
+  // CORE FUNCTIONS
+  // ============================================================
+  function seededShuffle(arr, seed){
+    const a = arr.slice();
+    let s = seed;
+    for(let i=a.length-1;i>0;i--){
+      s = (s * 9301 + 49297) % 233280;
+      const j = Math.floor((s/233280)*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function buildShuffledBank(seed){
+    const qOrder = seededShuffle(BANK.map((_,i)=>i), seed);
+    return qOrder.map((idx, qi) => {
+      const orig = BANK[idx];
+      const optOrder = seededShuffle(orig.opts.map((_,i)=>i), seed + qi*7 + 3);
+      const opts = optOrder.map(i => orig.opts[i]);
+      const correct = optOrder.indexOf(orig.correct);
+      return { 
+        q: orig.q, 
+        opts, 
+        correct,
+        originalIndex: idx
+      };
+    });
+  }
+
+  function logViolation(type, label){
+    violations.push({ type, label, time: new Date().toISOString() });
+    strikes++;
+    integrityDot.className = 'dot warn';
+    integrityText.textContent = strikes + ' violation' + (strikes>1?'s':'');
+    return strikes;
+  }
+
+  function fmtTime(d){
+    const date = typeof d === 'string' ? new Date(d) : d;
+    return date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  }
+
+  function fmtClock(sec){
+    const m = Math.floor(sec/60).toString().padStart(2,'0');
+    const s = (sec%60).toString().padStart(2,'0');
+    return m+':'+s;
+  }
+
+  function getAnsweredCount(){
+    return Object.keys(answers).filter(k => answers[k] !== undefined).length;
+  }
+
+  function getReviewCount(){
+    return Object.keys(reviewFlags).filter(k => reviewFlags[k]).length;
+  }
+
+  // ============================================================
+  // REGISTRATION
+  // ============================================================
+  function renderRegistration(){
+    phaseLabel.textContent = 'Registration';
+    const params = new URLSearchParams(window.location.search);
+    const inviteName = params.get('name') ? decodeURIComponent(params.get('name')) : '';
+    const inviteEmail = params.get('email') ? decodeURIComponent(params.get('email')) : '';
+    const inviteRole = params.get('role') ? decodeURIComponent(params.get('role')) : '';
+    const isInvited = !!(inviteName && inviteEmail);
+
+    stage.innerHTML = `
+      <div class="card">
+        <div class="eyebrow">${isInvited ? 'Invited assessment · Benison Solvers' : 'Assessment access · Benison Solvers'}</div>
+        <h1>${isInvited ? 'Welcome, ' + inviteName.split(' ')[0] : 'Before you begin'}</h1>
+        <p class="sub">${isInvited
+          ? 'You\'ve been invited by Benison Solvers to complete this VAT bookkeeping assessment. Confirm your details below to begin — this is a one-time attempt.'
+          : 'This is a short VAT bookkeeping assessment for Benison Solvers. Enter your details to start — this is a one-time attempt tied to your registration.'}</p>
+
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" id="regName" placeholder="Jordan Smith" value="${inviteName}" ${isInvited ? 'readonly' : ''}>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="regEmail" placeholder="jordan@email.com" value="${inviteEmail}" ${isInvited ? 'readonly' : ''}>
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="tel" id="regPhone" placeholder="+1 555 000 0000" required>
+        </div>
+        <div class="field">
+          <label>Position applied for</label>
+          <input type="text" id="regRole" placeholder="Bookkeeper — UK VAT" value="${inviteRole || 'Bookkeeper — UK VAT'}">
+        </div>
+        <div class="err" id="regErr">Please fill in all fields to continue.</div>
+
+        <div class="rules">
+          <div><span class="tick">✓</span> The test runs in fullscreen. Exiting fullscreen or switching tabs is logged.</div>
+          <div><span class="tick">✓</span> Copy, paste, and right-click are disabled during the test.</div>
+          <div><span class="tick">✓</span> ${MAX_STRIKES} logged violations will auto-submit your test.</div>
+          <div><span class="tick">✓</span> You have ${Math.floor(TEST_SECONDS/60)} minutes once you start.</div>
+          <div><span class="tick">✓</span> Passing score: ${PASS_THRESHOLD}% — certificate awarded on passing.</div>
+        </div>
+
+        <button class="btn primary block" id="startBtn">Register &amp; enter fullscreen</button>
+
+        <div class="footnote">Benison Solvers · Chartered Certified Accountants, Brentford, West London · Established since 2008 · 1000 Great West Road, Brentford, London, TW8 9DW · 020 3657 5631</div>
+      </div>
+    `;
+
+    document.getElementById('startBtn').onclick = () => {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const role = document.getElementById('regRole').value.trim();
+      const err = document.getElementById('regErr');
+      if(!name || !email || !phone || !role){
+        err.style.display = 'block';
+        return;
+      }
+      err.style.display = 'none';
+      candidate = { name, email, phone, role };
+      
+      // Check for multiple monitors
+      if (detectMultipleMonitors()) {
+        logViolation('multi-monitor', 'Multiple monitors detected - test may be compromised');
+      }
+      
+      const seed = Array.from(name+email).reduce((a,c)=>a+c.charCodeAt(0),0) + Date.now()%1000;
+      shuffledBank = buildShuffledBank(seed);
+      try {
+        sessionStorage.setItem('benison_test_state', JSON.stringify({
+          candidate, seed, shuffledBank, startTime: Date.now()
+        }));
+      } catch(e) {}
+      enterFullscreenAndStart();
+    };
+  }
+
+  function enterFullscreenAndStart(){
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+    if(req){
+      req.call(el).then(() => {
+        startTest();
+        // Request pointer lock after fullscreen
+        setTimeout(requestPointerLock, 1000);
+      }).catch(() => startTest());
+    } else {
+      startTest();
+    }
+  }
+
+  // ============================================================
+  // TEST
+  // ============================================================
+  function startTest(){
+    inTest = true;
+    startTime = Date.now();
+    phaseLabel.textContent = 'In progress';
+    
+    // Start window position tracking
+    setInterval(trackWindowPosition, 3000);
+    
+    try {
+      const saved = sessionStorage.getItem('benison_test_state');
+      if(saved) {
+        const data = JSON.parse(saved);
+        if(data.startTime && data.shuffledBank && data.shuffledBank.length === shuffledBank.length) {
+          const elapsed = Math.floor((Date.now() - data.startTime) / 1000);
+          if(elapsed < TEST_SECONDS) {
+            secondsLeft = TEST_SECONDS - elapsed;
+          }
+        }
+      }
+    } catch(e) {}
+    
+    if(secondsLeft <= 0) secondsLeft = TEST_SECONDS;
+    timerInterval = setInterval(tick, 1000);
+    renderQuestion();
+  }
+
+  function tick(){
+    secondsLeft--;
+    const timerEl = document.getElementById('timerDisplay');
+    if(timerEl){
+      timerEl.textContent = fmtClock(secondsLeft);
+      timerEl.className = 'timer' + (secondsLeft <= 30 ? ' low' : '');
+    }
+    if(secondsLeft <= 0){
+      clearInterval(timerInterval);
+      finishTest('time');
+    }
+  }
+
+  function renderQuestion(){
+    const item = shuffledBank[current];
+    const answered = answers[current] !== undefined;
+    const flagged = reviewFlags[current] || false;
+    const total = shuffledBank.length;
+    const answeredCount = getAnsweredCount();
+    const reviewCount = getReviewCount();
+
+    stage.innerHTML = `
+      <div class="test-shell">
+        <div class="test-top">
+          <span class="qcount">QUESTION ${current+1} OF ${total} — ${candidate.role || ''}</span>
+          <span class="timer" id="timerDisplay">${fmtClock(secondsLeft)}</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar" style="width:${((current+1)/total)*100}%"></div>
+        </div>
+        <div class="qcard">
+          <div class="qnum">Q${current+1} ${flagged ? '⚑ Flagged' : ''}</div>
+          <p class="qtext">${item.q}</p>
+          <div id="optsWrap">
+            ${item.opts.map((o,i)=>`
+              <div class="opt ${answered && answers[current]===i ? 'selected':''}" data-i="${i}">
+                <span class="letter">${String.fromCharCode(65+i)}</span>
+                <span>${o}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="review-panel">
+            <label>
+              <input type="checkbox" id="flagCheck" ${flagged ? 'checked' : ''}>
+              Flag this question for review
+            </label>
+            <span style="margin-left:auto;font-size:12px;color:var(--text-mute);">
+              ${answeredCount}/${total} answered · ${reviewCount} flagged
+            </span>
+          </div>
+
+          <div class="nav-row">
+            <div class="dots">
+              ${shuffledBank.map((_,i)=>`
+                <span class="navdot ${answers[i]!==undefined?'answered':''} ${i===current?'current':''} ${reviewFlags[i]?'review':''}" 
+                      data-goto="${i}" title="${i+1}${answers[i]!==undefined?' ✓':''}${reviewFlags[i]?' ⚑':''}">
+                </span>
+              `).join('')}
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              ${current > 0 ? `<button class="btn ghost" id="prevBtn">← Back</button>` : ''}
+              ${current < shuffledBank.length-1 
+                ? `<button class="btn ghost" id="nextBtn">Next →</button>`
+                : `<button class="btn primary" id="submitBtn">Submit assessment</button>`}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.querySelectorAll('.opt').forEach(el=>{
+      el.onclick = () => {
+        answers[current] = parseInt(el.dataset.i,10);
+        renderQuestion();
+      };
+    });
+
+    const flagEl = document.getElementById('flagCheck');
+    if(flagEl) {
+      flagEl.onchange = () => {
+        if(flagEl.checked) {
+          reviewFlags[current] = true;
+        } else {
+          delete reviewFlags[current];
+        }
+        renderQuestion();
+      };
+    }
+
+    document.querySelectorAll('.navdot').forEach(el=>{
+      el.onclick = () => { 
+        current = parseInt(el.dataset.goto,10); 
+        renderQuestion(); 
+      };
+    });
+
+    const prevBtn = document.getElementById('prevBtn');
+    if(prevBtn) prevBtn.onclick = () => { current--; renderQuestion(); };
+
+    const nextBtn = document.getElementById('nextBtn');
+    if(nextBtn) nextBtn.onclick = () => { current++; renderQuestion(); };
+
+    const submitBtn = document.getElementById('submitBtn');
+    if(submitBtn) submitBtn.onclick = () => showConfirmDialog();
+  }
+
+  function showConfirmDialog() {
+    const total = shuffledBank.length;
+    const answered = getAnsweredCount();
+    const unanswered = total - answered;
+    document.getElementById('confirmAnswered').textContent = answered;
+    document.getElementById('confirmTotal').textContent = total;
+    document.getElementById('confirmUnanswered').textContent = unanswered > 0 
+      ? `${unanswered} question${unanswered>1?'s':''} unanswered.` 
+      : 'All questions answered!';
+    confirmOverlay.classList.add('show');
+  }
+
+  document.getElementById('confirmCancel').onclick = () => {
+    confirmOverlay.classList.remove('show');
+  };
+
+  document.getElementById('confirmSubmit').onclick = () => {
+    confirmOverlay.classList.remove('show');
+    finishTest('manual');
+  };
+
+  function finishTest(reason){
+    inTest = false;
+    clearInterval(timerInterval);
+    locked = true;
+    if(document.fullscreenElement) document.exitFullscreen?.();
+
+    let correct = 0;
+    const detailedResults = shuffledBank.map((item, i) => {
+      const userAnswer = answers[i];
+      const isCorrect = userAnswer !== undefined && userAnswer === item.correct;
+      if(isCorrect) correct++;
+      return {
+        question: item.q,
+        options: item.opts,
+        correctIndex: item.correct,
+        userAnswer: userAnswer,
+        isCorrect: isCorrect,
+        answered: userAnswer !== undefined
+      };
+    });
+
+    const total = shuffledBank.length;
+    const pct = Math.round((correct/total)*100);
+    const passed = pct >= PASS_THRESHOLD;
+
+    resultsData = {
+      correct,
+      total,
+      pct,
+      passed,
+      detailedResults,
+      reason,
+      violations,
+      reviewFlags: Object.keys(reviewFlags).length,
+      timeTaken: Math.floor((Date.now() - startTime) / 1000),
+      hasMultipleMonitors: hasMultipleMonitors
+    };
+
+    const payload = {
+      name: candidate.name,
+      email: candidate.email,
+      phone: candidate.phone,
+      role: candidate.role,
+      score_percent: pct,
+      correct: correct,
+      total: total,
+      passed: passed,
+      violation_count: violations.length,
+      violation_log: violations.map(v => `${v.label} @ ${fmtTime(v.time)}`).join(" | ") || "None",
+      submission_reason: reason,
+      time_taken_seconds: resultsData.timeTaken,
+      review_flags: Object.keys(reviewFlags).length,
+      multi_monitor_detected: hasMultipleMonitors
+    };
+
+    saveResultToSupabase(payload);
+    try { sessionStorage.removeItem('benison_test_state'); } catch(e) {}
+
+    phaseLabel.textContent = 'Complete';
+    renderResults();
+  }
+
+  function renderResults(){
+    const { correct, total, pct, passed, detailedResults, reason, timeTaken } = resultsData;
+
+    const reviewItems = detailedResults.map((item, idx) => {
+      const userAns = item.userAnswer !== undefined ? item.options[item.userAnswer] : 'Not answered';
+      const correctAns = item.options[item.correctIndex];
+      const isCorrect = item.isCorrect;
+      const statusClass = isCorrect ? 'correct' : 'wrong';
+      const statusIcon = isCorrect ? '✓' : '✗';
+      
+      return `
+        <div class="review-item ${statusClass}">
+          <div class="r-q">${statusIcon} Q${idx+1}: ${item.question}</div>
+          <div class="r-answers">
+            ${item.answered 
+              ? `Your answer: <span class="${isCorrect ? 'correct-answer' : 'wrong-answer'}">${userAns}</span>`
+              : `Not answered`}
+            ${!isCorrect && item.answered ? ` · Correct answer: <span class="correct-answer">${correctAns}</span>` : ''}
+            ${!item.answered ? ` · Correct answer: <span class="correct-answer">${correctAns}</span>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const certificateHTML = passed ? `
+      <div class="certificate" id="certificate">
+        <img src="https://static.wixstatic.com/media/f09cc1_e90b119075904102bb78503477c3063d~mv2.png/v1/fill/w_532,h_141,al_c,lg_1,q_95,enc_avif,quality_auto/biglogo.png" alt="Benison Solvers" class="cert-logo" id="certLogo">
+        <span class="cert-badge">🏆</span>
+        <h2>CERTIFICATE OF COMPLETION</h2>
+        <div class="cert-sub">VAT Bookkeeping Assessment</div>
+        <div class="cert-name">${candidate.name}</div>
+        <div class="cert-detail">
+          Has successfully completed the Benison Solvers VAT Bookkeeping Assessment<br>
+          with a score of <strong>${pct}%</strong>
+        </div>
+        <div class="cert-score">${correct}/${total} correct answers</div>
+        <div class="established">Established since 2008 · Chartered Certified Accountants, Brentford, West London</div>
+        <div class="cert-footer">
+          <span>📅 ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          <span>Benison Solvers · Chartered Certified Accountants</span>
+          <span>Cert ID: BS-VAT-${String(Date.now()).slice(-6)}</span>
+        </div>
+      </div>
+    ` : `
+      <div class="certificate" style="border-color: var(--alert);">
+        <img src="https://static.wixstatic.com/media/f09cc1_e90b119075904102bb78503477c3063d~mv2.png/v1/fill/w_532,h_141,al_c,lg_1,q_95,enc_avif,quality_auto/biglogo.png" alt="Benison Solvers" class="cert-logo" id="certLogo">
+        <span class="cert-badge">📋</span>
+        <h2 style="color: var(--alert);">Assessment Completed</h2>
+        <div class="cert-sub">VAT Bookkeeping Assessment — Result</div>
+        <div class="cert-name">${candidate.name}</div>
+        <div class="cert-detail" style="color: var(--alert); font-weight: 600;">
+          Score: ${pct}% — Below passing threshold (${PASS_THRESHOLD}%)
+        </div>
+        <div class="cert-score">${correct}/${total} correct answers</div>
+        <div class="established">Established since 2008 · Chartered Certified Accountants, Brentford, West London</div>
+        <div class="cert-footer">
+          <span>📅 ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          <span>Benison Solvers · Chartered Certified Accountants</span>
+        </div>
+      </div>
+    `;
+
+    stage.innerHTML = `
+      <div class="card" style="max-width: 720px;">
+        <div class="eyebrow">${passed ? '🎉 Assessment Passed' : 'Assessment Complete'}</div>
+        <h1>${candidate.name}, ${passed ? 'congratulations!' : 'thank you for completing it.'}</h1>
+        <p class="sub">${reason==='time' ? 'Time expired — your answers were submitted automatically.' : (reason==='strikes' ? 'Auto-submitted after repeated integrity violations.' : 'Submitted for review.')}</p>
+
+        <div class="score-hero">
+          <div class="score-num" style="color: ${passed ? 'var(--safe)' : 'var(--alert)'};">${pct}%</div>
+          <div class="score-label">${correct} of ${total} correct — ${passed ? '✅ PASSED' : '❌ NOT PASSED'}</div>
+        </div>
+
+        ${certificateHTML}
+
+        <div class="no-print" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin: 12px 0;">
+          <button class="btn ${passed ? 'success' : 'ghost'}" onclick="window.print()">🖨️ Print Certificate</button>
+          <button class="btn ghost" id="toggleReviewBtn">Hide Full Answer Review</button>
+        </div>
+
+        <div class="answer-review" id="answerReview">
+          <h3>📝 Full Answer Review (All Questions)</h3>
+          ${reviewItems}
+        </div>
+
+        <div class="log no-print">
+          <div class="log-title">Integrity log</div>
+          ${violations.length === 0
+            ? `<div class="log-empty">✓ No violations recorded — clean session.</div>`
+            : violations.map(v => `<div class="log-row"><span>${v.label}</span><span class="log-time">${fmtTime(v.time)}</span></div>`).join('')}
+          <div class="log-row" style="border-top: 1px solid var(--line); margin-top: 8px; padding-top: 12px;">
+            <span>Time taken</span>
+            <span class="log-time">${fmtClock(timeTaken)}</span>
+          </div>
+          <div class="log-row">
+            <span>Questions flagged for review</span>
+            <span class="log-time">${Object.keys(reviewFlags).length}</span>
+          </div>
+          ${hasMultipleMonitors ? `
+          <div class="log-row" style="color: var(--alert);">
+            <span>⚠️ Multiple monitors detected during test</span>
+            <span class="log-time">Flagged</span>
+          </div>
+          ` : ''}
+        </div>
+
+        <div class="footnote no-print">Benison Solvers · Chartered Certified Accountants, Brentford, West London · Established since 2008 · 1000 Great West Road, Brentford, London, TW8 9DW · 020 3657 5631</div>
+      </div>
+    `;
+
+    let reviewVisible = true;
+    const toggleBtn = document.getElementById('toggleReviewBtn');
+    const reviewEl = document.getElementById('answerReview');
+    if(toggleBtn && reviewEl) {
+      toggleBtn.onclick = () => {
+        reviewVisible = !reviewVisible;
+        reviewEl.style.display = reviewVisible ? 'block' : 'none';
+        toggleBtn.textContent = reviewVisible ? 'Hide Full Answer Review' : 'Show Full Answer Review';
+      };
+    }
+  }
+
+  function showViolation(type, logLabel, title, body){
+    if(overlay.classList.contains('show') || !inTest || locked) return;
+    const n = logViolation(type, logLabel);
+    warnTitle.textContent = title;
+    warnBody.textContent = body;
+    strikeCountEl.textContent = `Strike ${n} of ${MAX_STRIKES}`;
+    overlay.classList.add('show');
+    if(n >= MAX_STRIKES){
+      resumeBtn.textContent = 'Auto-submitting…';
+      resumeBtn.disabled = true;
+      setTimeout(() => {
+        overlay.classList.remove('show');
+        finishTest('strikes');
+      }, 1400);
+    }
+  }
+
+  // ============================================================
+  // FULLSCREEN & VISIBILITY
+  // ============================================================
+  document.addEventListener('fullscreenchange', () => {
+    if(inTest && !document.fullscreenElement && !locked){
+      showViolation('fullscreen', 'Fullscreen mode exited', 'Fullscreen exited', 'Please stay in fullscreen for the duration of the test.');
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if(inTest && document.hidden && !locked){
+      showViolation('tabswitch', 'Switched tab or window', 'Window left focus', 'Switching tabs or windows during the test is logged as a violation.');
+    }
+  });
+
+  resumeBtn.onclick = () => {
+    overlay.classList.remove('show');
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+    if(req) req.call(el).catch(()=>{});
+    setTimeout(requestPointerLock, 1000);
+  };
+
+  // ============================================================
+  // INIT - LOAD SETTINGS THEN QUESTIONS
+  // ============================================================
+  let BANK = FALLBACK_BANK;
+
+  async function init() {
+    // Load settings from Supabase
+    const settings = await loadSettingsFromSupabase();
+    if (settings) {
+      PASS_THRESHOLD = settings.pass_threshold || 50;
+      TEST_SECONDS = settings.test_duration_seconds || 480;
+      MAX_STRIKES = settings.max_violations || 3;
+    }
+    
+    // Load questions from Supabase
+    const questions = await loadQuestionsFromSupabase();
+    if (questions && questions.length > 0) {
+      BANK = questions;
+      console.log(`✅ Loaded ${BANK.length} questions from Supabase`);
+    } else {
+      BANK = FALLBACK_BANK;
+      console.log('📝 Using fallback questions');
+    }
+    
+    renderRegistration();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
