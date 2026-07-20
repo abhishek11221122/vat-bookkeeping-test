@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benison Solvers — Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .header h1 span { color: #c9a24b; }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .number { font-size: 24px; font-weight: 700; }
+        .stat-card .label { font-size: 12px; color: #6b7280; margin-top: 4px; }
+        .stat-card.gold .number { color: #c9a24b; }
+        .stat-card.green .number { color: #10b981; }
+        .stat-card.red .number { color: #ef4444; }
+        .stat-card.blue .number { color: #3b82f6; }
+        .stat-card.purple .number { color: #8b5cf6; }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { background: #f3f4f6; }
+        .tab-btn.active { background: #1a1a2e; color: white; }
+
+        .panel {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 24px 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        .panel.active { display: block; }
+        .panel h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tr:hover { background: #f9fafb; }
+        tr.clickable { cursor: pointer; }
+        tr.clickable:hover { background: #f0f4ff; }
+
+        .badge-pass { background: #d1fae5; color: #065f46; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-fail { background: #fee2e2; color: #991b1b; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-violation { background: #fef3c7; color: #92400e; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-active { background: #dbeafe; color: #1e40af; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-used { background: #e5e7eb; color: #6b7280; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #c9a24b;
+            box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.2);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #1a1a2e; color: white; }
+        .btn-primary:hover { background: #2d2d44; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-warning { background: #c9a24b; color: white; }
+        .btn-warning:hover { background: #b38a3a; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-ghost {
+            background: transparent;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+        .btn-ghost:hover { background: #f3f4f6; }
+        .btn-info { background: #3b82f6; color: white; }
+        .btn-info:hover { background: #2563eb; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-purple:hover { background: #7c3aed; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h3 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f2f5;
+        }
+        .login-box {
+            background: white;
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        .login-box h2 { font-size: 28px; margin-bottom: 8px; }
+        .login-box .sub { color: #6b7280; margin-bottom: 24px; }
+        .login-box .error { color: #ef4444; font-size: 14px; margin-bottom: 12px; display: none; }
+
+        .settings-group {
+            background: #f9fafb;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .settings-group .info { flex: 1; }
+        .settings-group .info .title { font-weight: 600; font-size: 14px; }
+        .settings-group .info .desc { font-size: 13px; color: #6b7280; }
+        .settings-group input { width: 120px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+
+        .empty-state { text-align: center; padding: 40px; color: #6b7280; }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .loading { text-align: center; padding: 40px; color: #6b7280; }
+
+        .invite-box {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        .invite-box .info { flex: 1; }
+        .invite-box .info .name { font-weight: 600; }
+        .invite-box .info .email { font-size: 13px; color: #6b7280; }
+        .invite-box .link {
+            font-size: 13px;
+            color: #3b82f6;
+            word-break: break-all;
+            flex: 1;
+            min-width: 200px;
+        }
+        .invite-box .link a { color: #3b82f6; text-decoration: none; }
+        .invite-box .link a:hover { text-decoration: underline; }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid #d1d5db;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: #f3f4f6; }
+
+        .candidate-detail { background: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .candidate-detail .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+        .candidate-detail .row:last-child { border-bottom: none; }
+        .candidate-detail .label { font-weight: 600; color: #6b7280; }
+        .candidate-detail .value { color: #1a1a2e; }
+
+        .answer-detail-item {
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            border-left: 4px solid #d1d5db;
+            background: white;
+            font-size: 13px;
+        }
+        .answer-detail-item.correct { border-left-color: #10b981; background: #f0fdf4; }
+        .answer-detail-item.wrong { border-left-color: #ef4444; background: #fef2f2; }
+        .answer-detail-item .q-text { font-weight: 600; }
+        .answer-detail-item .q-answer { color: #6b7280; margin-top: 2px; }
+
+        .search-box {
+            padding: 10px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 180px;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #c9a24b;
+            box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.2);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1a1a2e;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+        .toast.info { background: #3b82f6; }
+
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: stretch; text-align: center; }
+            .header-actions { justify-content: center; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .panel { padding: 16px; }
+            .login-box { padding: 24px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .invite-box { flex-direction: column; align-items: stretch; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .settings-group { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h2>🔐 Admin Access</h2>
+            <p class="sub">Benison Solvers Assessment Admin</p>
+            <div class="error" id="loginError">Invalid credentials. Please try again.</div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="admin@benisonsolvers.co.uk">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password">
+            </div>
+            <button class="btn btn-primary" style="width:100%;" onclick="login()">Login</button>
+            <p style="margin-top:16px;font-size:13px;color:#6b7280;text-align:center;">
+                Default: admin@benisonsolvers.co.uk / admin123
+            </p>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" style="display:none;">
+        <div class="container">
+            <div class="header">
+                <h1>📊 <span>Benison</span> Admin</h1>
+                <div class="header-actions">
+                    <span id="adminUser" style="font-size:14px;color:#6b7280;"></span>
+                    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card gold" onclick="switchTab('questions')">
+                    <div class="number" id="totalQuestions">0</div>
+                    <div class="label">📝 Questions</div>
+                </div>
+                <div class="stat-card blue" onclick="switchTab('invites')">
+                    <div class="number" id="totalInvites">0</div>
+                    <div class="label">📨 Invites Sent</div>
+                </div>
+                <div class="stat-card green" onclick="switchTab('results')">
+                    <div class="number" id="totalCandidates">0</div>
+                    <div class="label">👤 Candidates</div>
+                </div>
+                <div class="stat-card" onclick="switchTab('results')">
+                    <div class="number" id="passRate">0%</div>
+                    <div class="label">✅ Pass Rate</div>
+                </div>
+                <div class="stat-card red" onclick="switchTab('results')">
+                    <div class="number" id="violations">0</div>
+                    <div class="label">⚠️ Violations</div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="questions" onclick="switchTab('questions')">📝 Questions</button>
+                <button class="tab-btn" data-tab="invites" onclick="switchTab('invites')">📨 Invites</button>
+                <button class="tab-btn" data-tab="results" onclick="switchTab('results')">📋 Results</button>
+                <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
+            </div>
+
+            <!-- Panel: Questions -->
+            <div class="panel active" id="panel-questions">
+                <div class="toolbar">
+                    <h2 style="margin:0;">📝 Question Bank</h2>
+                    <span style="font-size:13px;color:#6b7280;" id="questionCount">0 questions</span>
+                    <button class="btn btn-success" onclick="openAddQuestion()">+ Add Question</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">#</th>
+                                <th>Question</th>
+                                <th>Options</th>
+                                <th style="width:70px;">Correct</th>
+                                <th style="width:100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="questionsTableBody">
+                            <tr><td colspan="5" class="loading">Loading questions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Panel: Invites -->
+            <div class="panel" id="panel-invites">
+                <h2>📨 Manage Invites</h2>
+                <div class="toolbar">
+                    <input type="text" id="inviteName" class="search-box" placeholder="Candidate Name" style="flex:0.5;">
+                    <input type="email" id="inviteEmail" class="search-box" placeholder="Candidate Email" style="flex:0.5;">
+                    <button class="btn btn-success" onclick="generateInvite()">📨 Generate Invite</button>
+                    <button class="btn btn-ghost btn-sm" onclick="loadInvites()">🔄 Refresh</button>
+                </div>
+                <div id="invitesList">
+                    <div class="loading">Loading invites...</div>
+                </div>
+            </div>
+
+            <!-- Panel: Results -->
+            <div class="panel" id="panel-results">
+                <h2>📋 Candidate Results</h2>
+                <div class="toolbar">
+                    <input type="text" id="searchResults" class="search-box" placeholder="🔍 Search by name or email..." oninput="loadResults()">
+                    <select id="filterStatus" onchange="loadResults()" style="padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;">
+                        <option value="all">All Status</option>
+                        <option value="passed">✅ Passed</option>
+                        <option value="failed">❌ Failed</option>
+                    </select>
+                    <button class="btn btn-ghost btn-sm" onclick="exportResults()">📥 Export CSV</button>
+                    <button class="btn btn-ghost btn-sm" onclick="refreshResults()">🔄 Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                                <th>Violations</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                            <tr><td colspan="6" class="loading">Loading results...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Panel: Settings -->
+            <div class="panel" id="panel-settings">
+                <h2>⚙️ Assessment Settings</h2>
+                <div id="settingsContainer">
+                    <div class="loading">Loading settings...</div>
+                </div>
+                <div style="margin-top:20px;">
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add/Edit Question -->
+<div class="modal" id="questionModal">
+    <div class="modal-content">
+        <h3 id="modalTitle">📝 Add Question</h3>
+        <input type="hidden" id="editQuestionId">
+        <div class="form-group">
+            <label>Question</label>
+            <textarea id="qText" rows="2" placeholder="Enter the question..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Options</label>
+            <input id="qOpt1" placeholder="Option A">
+            <input id="qOpt2" placeholder="Option B" style="margin-top:8px;">
+            <input id="qOpt3" placeholder="Option C" style="margin-top:8px;">
+            <input id="qOpt4" placeholder="Option D" style="margin-top:8px;">
+        </div>
+        <div class="form-group">
+            <label>Correct Answer</label>
+            <select id="qCorrect">
+                <option value="0">A - Option 1</option>
+                <option value="1">B - Option 2</option>
+                <option value="2">C - Option 3</option>
+                <option value="3">D - Option 4</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Difficulty</label>
+                <select id="qDifficulty">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate" selected>Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Topic</label>
+                <input id="qTopic" placeholder="e.g., VAT, Bookkeeping">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveQuestion()">💾 Save Question</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Candidate Details -->
+<div class="modal" id="candidateModal">
+    <div class="modal-content" style="max-width: 800px;">
+        <h3>👤 Candidate Details</h3>
+        <div id="candidateDetailContent">
+            <div class="loading">Loading...</div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeCandidateModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// SUPABASE CONFIG
+// ============================================================
+const SUPABASE_URL = "https://rbcjfecerhonpyyoxrre.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_q-7geKIhAgKh8aiGPL9vLA_ZSGC7xeO";
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null;
+let questions = [];
+let results = [];
+let invites = [];
+let settings = {};
+let BASE_URL = window.location.origin + window.location.pathname.replace('admin.html', '');
+
+// ============================================================
+// AUTHENTICATION
+// ============================================================
+function login() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const errorEl = document.getElementById('loginError');
+
+    if (email === 'admin@benisonsolvers.co.uk' && password === 'admin123') {
+        errorEl.style.display = 'none';
+        currentUser = { email };
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('adminUser').textContent = '👤 ' + email;
+        loadDashboard();
+    } else {
+        errorEl.style.display = 'block';
+    }
+}
+
+function logout() {
+    currentUser = null;
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('loginPassword').value = '';
+}
+
+document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') login();
+});
+document.getElementById('loginEmail').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') login();
+});
+
+// ============================================================
+// SUPABASE HELPERS
+// ============================================================
+async function supabaseFetch(path, options = {}) {
+    const url = `${SUPABASE_URL}/rest/v1/${path}`;
+    const headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        ...options.headers
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Supabase error: ${response.status} - ${error}`);
+    }
+    return response.json();
+}
+
+// ============================================================
+// TOAST NOTIFICATIONS
+// ============================================================
+function showToast(message, type = 'info') {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(100px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function loadDashboard() {
+    await Promise.all([
+        loadQuestions(),
+        loadInvites(),
+        loadResults(),
+        loadSettings()
+    ]);
+    updateStats();
+}
+
+function updateStats() {
+    document.getElementById('totalQuestions').textContent = questions.length;
+    document.getElementById('totalInvites').textContent = invites.length;
+    document.getElementById('totalCandidates').textContent = results.length;
+    
+    const passed = results.filter(r => r.passed === true || r.passed === 'true').length;
+    const passRate = results.length > 0 ? Math.round((passed / results.length) * 100) : 0;
+    document.getElementById('passRate').textContent = passRate + '%';
+    
+    const totalViolations = results.reduce((sum, r) => sum + (r.violation_count || 0), 0);
+    document.getElementById('violations').textContent = totalViolations;
+}
+
+// ============================================================
+// QUESTIONS - Full CRUD
+// ============================================================
+async function loadQuestions() {
+    try {
+        questions = await supabaseFetch('questions?order=id.asc');
+        renderQuestions();
+    } catch (e) {
+        console.error('Error loading questions:', e);
+        document.getElementById('questionsTableBody').innerHTML = `
+            <tr><td colspan="5" style="color:#ef4444;text-align:center;">
+                ❌ Error loading questions: ${e.message}
+            </td></tr>
+        `;
+    }
+}
+
+function renderQuestions() {
+    const tbody = document.getElementById('questionsTableBody');
+    document.getElementById('questionCount').textContent = `${questions.length} questions`;
+    
+    if (questions.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="5" class="empty-state">
+                <div class="icon">📝</div>
+                No questions yet. Click "Add Question" to get started.
+            </td></tr>
+        `;
+        return;
+    }
+    tbody.innerHTML = questions.map((q, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td style="max-width:300px;">${q.question || q.q || ''}</td>
+            <td style="font-size:12px;">
+                ${(q.options || q.opts || []).map((o, j) => 
+                    `${String.fromCharCode(65+j)}) ${o}`
+                ).join(' | ')}
+            </td>
+            <td>
+                <span style="font-weight:700;color:#10b981;">
+                    ${String.fromCharCode(65 + (q.correct_index || q.correct || 0))}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-primary btn-sm" onclick="editQuestion(${q.id})" title="Edit">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteQuestion(${q.id})" title="Delete">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openAddQuestion() {
+    document.getElementById('modalTitle').textContent = '📝 Add Question';
+    document.getElementById('editQuestionId').value = '';
+    document.getElementById('qText').value = '';
+    document.getElementById('qOpt1').value = '';
+    document.getElementById('qOpt2').value = '';
+    document.getElementById('qOpt3').value = '';
+    document.getElementById('qOpt4').value = '';
+    document.getElementById('qCorrect').value = '0';
+    document.getElementById('qDifficulty').value = 'intermediate';
+    document.getElementById('qTopic').value = '';
+    document.getElementById('questionModal').classList.add('show');
+}
+
+function editQuestion(id) {
+    const q = questions.find(q => q.id === id);
+    if (!q) return;
+    document.getElementById('modalTitle').textContent = '✏️ Edit Question';
+    document.getElementById('editQuestionId').value = id;
+    document.getElementById('qText').value = q.question || q.q || '';
+    const opts = q.options || q.opts || ['', '', '', ''];
+    document.getElementById('qOpt1').value = opts[0] || '';
+    document.getElementById('qOpt2').value = opts[1] || '';
+    document.getElementById('qOpt3').value = opts[2] || '';
+    document.getElementById('qOpt4').value = opts[3] || '';
+    document.getElementById('qCorrect').value = q.correct_index || q.correct || 0;
+    document.getElementById('qDifficulty').value = q.difficulty || 'intermediate';
+    document.getElementById('qTopic').value = q.topic || '';
+    document.getElementById('questionModal').classList.add('show');
+}
+
+async function saveQuestion() {
+    const id = document.getElementById('editQuestionId').value;
+    const question = document.getElementById('qText').value.trim();
+    const options = [
+        document.getElementById('qOpt1').value.trim(),
+        document.getElementById('qOpt2').value.trim(),
+        document.getElementById('qOpt3').value.trim(),
+        document.getElementById('qOpt4').value.trim()
+    ];
+    const correct_index = parseInt(document.getElementById('qCorrect').value);
+    const difficulty = document.getElementById('qDifficulty').value;
+    const topic = document.getElementById('qTopic').value.trim();
+
+    if (!question) { showToast('Please enter a question.', 'error'); return; }
+    if (options.some(o => !o)) { showToast('Please fill in all options.', 'error'); return; }
+
+    const data = { question, options, correct_index, difficulty, topic };
+
+    try {
+        if (id) {
+            await supabaseFetch(`questions?id=eq.${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(data)
+            });
+            showToast('✅ Question updated!', 'success');
+        } else {
+            await supabaseFetch('questions', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            showToast('✅ Question added!', 'success');
+        }
+        closeModal();
+        await loadQuestions();
+        updateStats();
+    } catch (e) {
+        showToast('Error saving question: ' + e.message, 'error');
+    }
+}
+
+async function deleteQuestion(id) {
+    if (!confirm('⚠️ Are you sure you want to delete this question?')) return;
+    try {
+        await supabaseFetch(`questions?id=eq.${id}`, { method: 'DELETE' });
+        await loadQuestions();
+        updateStats();
+        showToast('🗑️ Question deleted!', 'success');
+    } catch (e) {
+        showToast('Error deleting question: ' + e.message, 'error');
+    }
+}
+
+function closeModal() {
+    document.getElementById('questionModal').classList.remove('show');
+}
+
+// ============================================================
+// INVITES SYSTEM
+// ============================================================
+async function loadInvites() {
+    try {
+        invites = await supabaseFetch('invites?order=created_at.desc');
+        renderInvites();
+    } catch (e) {
+        console.error('Error loading invites:', e);
+        document.getElementById('invitesList').innerHTML = `
+            <div style="color:#ef4444;padding:20px;">❌ Error loading invites: ${e.message}</div>
+        `;
+    }
+}
+
+function renderInvites() {
+    const container = document.getElementById('invitesList');
+    
+    if (invites.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📨</div>
+                No invites sent yet. Generate your first invite above.
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = invites.map(invite => {
+        const isUsed = invite.used === true || invite.used === 'true';
+        const link = `${BASE_URL}?token=${invite.token}&name=${encodeURIComponent(invite.name)}&email=${encodeURIComponent(invite.email)}`;
+        
+        return `
+            <div class="invite-box">
+                <div class="info">
+                    <div class="name">${invite.name}</div>
+                    <div class="email">${invite.email}</div>
+                    <div style="font-size:12px;color:#6b7280;margin-top:4px;">
+                        ${isUsed ? '✅ Used' : '⏳ Pending'} · ${new Date(invite.created_at).toLocaleDateString()}
+                    </div>
+                </div>
+                <div class="link">
+                    <a href="${link}" target="_blank">${link}</a>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="copy-btn" onclick="copyLink('${link}')">📋 Copy</button>
+                    ${!isUsed ? `<button class="btn btn-danger btn-sm" onclick="deleteInvite(${invite.id})">🗑️</button>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function generateInvite() {
+    const name = document.getElementById('inviteName').value.trim();
+    const email = document.getElementById('inviteEmail').value.trim();
+
+    if (!name || !email) {
+        showToast('Please enter both name and email.', 'error');
+        return;
+    }
+
+    // Generate unique token
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
+    const data = { name, email, token, used: false };
+
+    try {
+        await supabaseFetch('invites', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        document.getElementById('inviteName').value = '';
+        document.getElementById('inviteEmail').value = '';
+        await loadInvites();
+        updateStats();
+        showToast(`✅ Invite sent to ${name}!`, 'success');
+    } catch (e) {
+        showToast('Error generating invite: ' + e.message, 'error');
+    }
+}
+
+async function deleteInvite(id) {
+    if (!confirm('Delete this invite?')) return;
+    try {
+        await supabaseFetch(`invites?id=eq.${id}`, { method: 'DELETE' });
+        await loadInvites();
+        updateStats();
+        showToast('🗑️ Invite deleted!', 'success');
+    } catch (e) {
+        showToast('Error deleting invite: ' + e.message, 'error');
+    }
+}
+
+function copyLink(link) {
+    navigator.clipboard.writeText(link).then(() => {
+        showToast('📋 Link copied to clipboard!', 'success');
+    }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = link;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+        showToast('📋 Link copied!', 'success');
+    });
+}
+
+// ============================================================
+// RESULTS - With Candidate Details
+// ============================================================
+async function loadResults() {
+    try {
+        const search = document.getElementById('searchResults')?.value || '';
+        const filter = document.getElementById('filterStatus')?.value || 'all';
+        
+        let url = 'candidates?order=created_at.desc';
+        if (search) {
+            url += `&or=(name.ilike.*${search}*,email.ilike.*${search}*)`;
+        }
+        
+        results = await supabaseFetch(url);
+        renderResults(filter);
+    } catch (e) {
+        console.error('Error loading results:', e);
+        document.getElementById('resultsTableBody').innerHTML = `
+            <tr><td colspan="6" style="color:#ef4444;text-align:center;">
+                ❌ Error loading results: ${e.message}
+            </td></tr>
+        `;
+    }
+}
+
+function refreshResults() {
+    document.getElementById('searchResults').value = '';
+    document.getElementById('filterStatus').value = 'all';
+    loadResults();
+}
+
+function renderResults(filter) {
+    const tbody = document.getElementById('resultsTableBody');
+    let filtered = results;
+    if (filter === 'passed') {
+        filtered = results.filter(r => r.passed === true || r.passed === 'true');
+    } else if (filter === 'failed') {
+        filtered = results.filter(r => r.passed !== true && r.passed !== 'true');
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="6" class="empty-state">
+                <div class="icon">📋</div>
+                No results found.
+            </td></tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(r => `
+        <tr class="clickable" onclick="viewCandidateDetails(${r.id})">
+            <td><strong>${r.name || 'N/A'}</strong></td>
+            <td>${r.email || 'N/A'}</td>
+            <td><strong>${r.score_percent || 0}%</strong> (${r.correct || 0}/${r.total || 0})</td>
+            <td>
+                <span class="${r.passed === true || r.passed === 'true' ? 'badge-pass' : 'badge-fail'}">
+                    ${r.passed === true || r.passed === 'true' ? '✅ PASSED' : '❌ FAILED'}
+                </span>
+            </td>
+            <td>
+                <span class="${r.violation_count > 0 ? 'badge-violation' : ''}">
+                    ${r.violation_count || 0}
+                </span>
+            </td>
+            <td style="font-size:13px;color:#6b7280;">
+                ${r.created_at ? new Date(r.created_at).toLocaleDateString() : 'N/A'}
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ============================================================
+// CANDIDATE DETAILS VIEW
+// ============================================================
+async function viewCandidateDetails(candidateId) {
+    try {
+        const candidate = results.find(r => r.id === candidateId);
+        if (!candidate) {
+            showToast('Candidate not found', 'error');
+            return;
+        }
+
+        let violationList = [];
+        if (candidate.violation_log) {
+            violationList = candidate.violation_log.split(' | ').filter(v => v && v !== 'None');
+        }
+
+        const content = document.getElementById('candidateDetailContent');
+        content.innerHTML = `
+            <div class="candidate-detail">
+                <div class="row"><span class="label">👤 Name</span><span class="value">${candidate.name || 'N/A'}</span></div>
+                <div class="row"><span class="label">📧 Email</span><span class="value">${candidate.email || 'N/A'}</span></div>
+                <div class="row"><span class="label">📱 Phone</span><span class="value">${candidate.phone || 'N/A'}</span></div>
+                <div class="row"><span class="label">💼 Role</span><span class="value">${candidate.role || 'N/A'}</span></div>
+                <div class="row">
+                    <span class="label">📊 Score</span>
+                    <span class="value" style="font-weight:700;color:${candidate.passed ? '#10b981' : '#ef4444'};">
+                        ${candidate.score_percent || 0}% (${candidate.correct || 0}/${candidate.total || 0})
+                    </span>
+                </div>
+                <div class="row">
+                    <span class="label">✅ Status</span>
+                    <span class="value">
+                        <span class="${candidate.passed ? 'badge-pass' : 'badge-fail'}">
+                            ${candidate.passed ? '✅ PASSED' : '❌ FAILED'}
+                        </span>
+                    </span>
+                </div>
+                <div class="row">
+                    <span class="label">⏱️ Time Taken</span>
+                    <span class="value">${candidate.time_taken_seconds ? formatTime(candidate.time_taken_seconds) : 'N/A'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">⚠️ Violations</span>
+                    <span class="value">${candidate.violation_count || 0}</span>
+                </div>
+                ${candidate.multi_monitor_detected ? `
+                <div class="row" style="color:#ef4444;">
+                    <span class="label">🖥️ Multi-Monitor</span>
+                    <span class="value">Detected during test</span>
+                </div>
+                ` : ''}
+                <div class="row">
+                    <span class="label">📅 Submitted</span>
+                    <span class="value">${candidate.created_at ? new Date(candidate.created_at).toLocaleString() : 'N/A'}</span>
+                </div>
+                <div class="row">
+                    <span class="label">📝 Submission Reason</span>
+                    <span class="value">${candidate.submission_reason || 'N/A'}</span>
+                </div>
+            </div>
+            
+            ${violationList.length > 0 ? `
+            <h4 style="margin-top:16px;color:#ef4444;">⚠️ Violation Log</h4>
+            ${violationList.map(v => `
+                <div style="padding:8px 12px;background:#fef2f2;border-radius:6px;margin-bottom:4px;font-size:13px;border-left:3px solid #ef4444;">
+                    ${v}
+                </div>
+            `).join('')}
+            ` : `
+            <div style="padding:12px;background:#f0fdf4;border-radius:6px;margin-top:12px;border-left:3px solid #10b981;">
+                ✅ No violations recorded
+            </div>
+            `}
+            
+            <div style="margin-top:16px;padding:12px;background:#f9fafb;border-radius:6px;font-size:13px;color:#6b7280;">
+                <strong>💡 Note:</strong> Individual question answers are not stored. Only the overall score is recorded.
+            </div>
+        `;
+
+        document.getElementById('candidateModal').classList.add('show');
+    } catch (e) {
+        showToast('Error loading candidate details: ' + e.message, 'error');
+    }
+}
+
+function closeCandidateModal() {
+    document.getElementById('candidateModal').classList.remove('show');
+}
+
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${s}s`;
+}
+
+// ============================================================
+// EXPORT RESULTS
+// ============================================================
+function exportResults() {
+    if (results.length === 0) {
+        showToast('No results to export.', 'error');
+        return;
+    }
+    let csv = 'Name,Email,Phone,Role,Score,Passed,Violations,Time Taken,Date\n';
+    results.forEach(r => {
+        csv += `"${r.name || ''}","${r.email || ''}","${r.phone || ''}","${r.role || ''}",${r.score_percent || 0},${r.passed ? 'Yes' : 'No'},${r.violation_count || 0},"${r.time_taken_seconds ? formatTime(r.time_taken_seconds) : ''}","${r.created_at ? new Date(r.created_at).toLocaleString() : ''}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `results_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    showToast('📥 Results exported!', 'success');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+async function loadSettings() {
+    try {
+        const data = await supabaseFetch('assessment_settings?limit=1');
+        if (data && data.length > 0) {
+            settings = data[0];
+        } else {
+            settings = { pass_threshold: 50, test_duration_seconds: 480, max_violations: 3 };
+        }
+        renderSettings();
+    } catch (e) {
+        console.error('Error loading settings:', e);
+        document.getElementById('settingsContainer').innerHTML = `
+            <div style="color:#ef4444;">Error loading settings: ${e.message}</div>
+        `;
+    }
+}
+
+function renderSettings() {
+    document.getElementById('settingsContainer').innerHTML = `
+        <div class="settings-group">
+            <div class="info">
+                <div class="title">🎯 Passing Score Threshold</div>
+                <div class="desc">Minimum percentage required to pass</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" id="settingPassThreshold" value="${settings.pass_threshold || 50}" min="0" max="100">
+                <span>%</span>
+            </div>
+        </div>
+        <div class="settings-group">
+            <div class="info">
+                <div class="title">⏱️ Test Duration</div>
+                <div class="desc">Time allowed for the assessment in minutes</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" id="settingDuration" value="${Math.round((settings.test_duration_seconds || 480) / 60)}" min="1" max="60">
+                <span>minutes</span>
+            </div>
+        </div>
+        <div class="settings-group">
+            <div class="info">
+                <div class="title">🚫 Max Violations</div>
+                <div class="desc">Number of violations before auto-submission</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" id="settingMaxViolations" value="${settings.max_violations || 3}" min="1" max="10">
+            </div>
+        </div>
+    `;
+}
+
+async function saveSettings() {
+    const pass_threshold = parseInt(document.getElementById('settingPassThreshold').value);
+    const test_duration_seconds = parseInt(document.getElementById('settingDuration').value) * 60;
+    const max_violations = parseInt(document.getElementById('settingMaxViolations').value);
+
+    if (isNaN(pass_threshold) || isNaN(test_duration_seconds) || isNaN(max_violations)) {
+        showToast('Please enter valid numbers.', 'error');
+        return;
+    }
+
+    const data = { pass_threshold, test_duration_seconds, max_violations };
+
+    try {
+        if (settings.id) {
+            await supabaseFetch(`assessment_settings?id=eq.${settings.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(data)
+            });
+        } else {
+            await supabaseFetch('assessment_settings', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        }
+        await loadSettings();
+        showToast('✅ Settings saved successfully!', 'success');
+    } catch (e) {
+        showToast('Error saving settings: ' + e.message, 'error');
+    }
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`panel-${tab}`).classList.add('active');
+    
+    if (tab === 'invites') loadInvites();
+    if (tab === 'results') loadResults();
+    if (tab === 'settings') loadSettings();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.getElementById('loginScreen').style.display = 'flex';
+document.getElementById('adminPanel').style.display = 'none';
+
+console.log('🔐 Benison Solvers Admin Panel');
+console.log('📝 Login: admin@benisonsolvers.co.uk / admin123');
+console.log('🔗 Connected to Supabase:', SUPABASE_URL);
+console.log('📨 Invite system ready');
+</script>
+</body>
+</html>
