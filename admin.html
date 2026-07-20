@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Benison Solvers — Admin Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        /* ============================================================
+           ROOT VARIABLES
+           ============================================================ */
+        :root {
+            --navy: #0f1a2e;
+            --navy-light: #1a2d4a;
+            --gold: #c9a24b;
+            --gold-light: #e0c67a;
+            --gold-dark: #a8822f;
+            --white: #ffffff;
+            --off-white: #f8f7f4;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--off-white);
+            color: var(--gray-800);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ============================================================
+           ANIMATIONS
+           ============================================================ */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .header {
+            background: var(--white);
+            padding: 20px 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+        .header h1 span {
+            color: var(--gold);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-actions .user {
+            font-size: 13px;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        /* ============================================================
+           STATS GRID
+           ============================================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 18px 22px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--gray-100);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--gold);
+        }
+
+        .stat-card .number {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .stat-card.gold .number {
+            color: var(--gold);
+        }
+        .stat-card.green .number {
+            color: var(--success);
+        }
+        .stat-card.red .number {
+            color: var(--danger);
+        }
+        .stat-card.blue .number {
+            color: #3b82f6;
+        }
+
+        /* ============================================================
+           TABS
+           ============================================================ */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 24px;
+            background: var(--white);
+            padding: 6px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            border: 1px solid var(--gray-100);
+        }
+
+        .tab-btn {
+            padding: 10px 22px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-500);
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
+
+        .tab-btn:hover {
+            background: var(--gray-50);
+            color: var(--gray-700);
+        }
+
+        .tab-btn.active {
+            background: var(--navy);
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* ============================================================
+           PANELS
+           ============================================================ */
+        .panel {
+            display: none;
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 28px 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            border: 1px solid var(--gray-100);
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .panel h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 20px;
+            color: var(--navy);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           TOOLBAR
+           ============================================================ */
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .search-box {
+            padding: 10px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            flex: 1;
+            min-width: 180px;
+            transition: var(--transition);
+            background: var(--gray-50);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201, 162, 75, 0.1);
+            background: var(--white);
+        }
+
+        /* ============================================================
+           BUTTONS
+           ============================================================ */
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--navy);
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            background: var(--navy-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+        }
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--gray-600);
+            border: 2px solid var(--gray-200);
+        }
+        .btn-ghost:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+
+        .btn-gold {
+            background: var(--gold);
+            color: var(--white);
+        }
+        .btn-gold:hover {
+            background: var(--gold-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* ============================================================
+           TABLES
+           ============================================================ */
+        .table-wrap {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-100);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-600);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        tr.clickable {
+            cursor: pointer;
+        }
+        tr.clickable:hover {
+            background: rgba(201, 162, 75, 0.06);
+        }
+
+        /* ============================================================
+           BADGES
+           ============================================================ */
+        .badge-pass {
+            background: var(--success-light);
+            color: #065f46;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-fail {
+            background: var(--danger-light);
+            color: #991b1b;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-violation {
+            background: var(--warning-light);
+            color: #92400e;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-correct {
+            background: var(--success-light);
+            color: #065f46;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-wrong {
+            background: var(--danger-light);
+            color: #991b1b;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* ============================================================
+           FORMS
+           ============================================================ */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray-700);
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            transition: var(--transition);
+            background: var(--gray-50);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201, 162, 75, 0.1);
+            background: var(--white);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* ============================================================
+           MODAL
+           ============================================================ */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 26, 46, 0.8);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            max-width: 760px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-2xl);
+            border-top: 4px solid var(--gold);
+            animation: slideDown 0.3s ease forwards;
+        }
+
+        .modal-content h3 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 20px;
+            color: var(--navy);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           LOGIN
+           ============================================================ */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--off-white) 0%, var(--gray-100) 100%);
+        }
+
+        .login-box {
+            background: var(--white);
+            padding: 48px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-2xl);
+            max-width: 400px;
+            width: 100%;
+            border-top: 4px solid var(--gold);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .login-box h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 28px;
+            color: var(--navy);
+            margin-bottom: 4px;
+        }
+
+        .login-box .sub {
+            color: var(--gray-500);
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .login-box .error {
+            color: var(--danger);
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: none;
+            background: var(--danger-light);
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            border-left: 4px solid var(--danger);
+        }
+
+        .login-box .error.show {
+            display: block;
+        }
+
+        /* ============================================================
+           SETTINGS
+           ============================================================ */
+        .settings-group {
+            background: var(--gray-50);
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .settings-group .info {
+            flex: 1;
+        }
+
+        .settings-group .info .title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--gray-800);
+        }
+
+        .settings-group .info .desc {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .settings-group input {
+            width: 120px;
+            padding: 8px 12px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .settings-group input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        /* ============================================================
+           INVITE BOX
+           ============================================================ */
+        .invite-box {
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+        }
+
+        .invite-box:hover {
+            border-color: var(--gold);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .invite-box .info .name {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .invite-box .info .email {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .invite-box .link {
+            font-size: 13px;
+            color: #3b82f6;
+            word-break: break-all;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .invite-box .link a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        .invite-box .link a:hover {
+            text-decoration: underline;
+        }
+
+        .copy-btn {
+            background: none;
+            border: 2px solid var(--gray-200);
+            padding: 6px 12px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+            color: var(--gray-600);
+        }
+
+        .copy-btn:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+
+        /* ============================================================
+           CANDIDATE DETAIL
+           ============================================================ */
+        .candidate-detail {
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .candidate-detail .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .candidate-detail .row:last-child {
+            border-bottom: none;
+        }
+
+        .candidate-detail .label {
+            font-weight: 600;
+            color: var(--gray-500);
+        }
+
+        .candidate-detail .value {
+            color: var(--gray-800);
+        }
+
+        .answer-review-item {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            border-left: 4px solid var(--gray-300);
+            background: var(--white);
+            font-size: 13px;
+            transition: var(--transition);
+        }
+
+        .answer-review-item.correct {
+            border-left-color: var(--success);
+            background: var(--success-light);
+        }
+
+        .answer-review-item.wrong {
+            border-left-color: var(--danger);
+            background: var(--danger-light);
+        }
+
+        .answer-review-item .q-text {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .answer-review-item .q-answer {
+            color: var(--gray-600);
+            margin-top: 2px;
+        }
+
+        /* ============================================================
+           EMPTY / LOADING
+           ============================================================ */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray-500);
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray-500);
+        }
+
+        /* ============================================================
+           TOAST
+           ============================================================ */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .toast {
+            padding: 14px 20px;
+            border-radius: var(--radius);
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow-xl);
+            animation: slideDown 0.3s ease forwards;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(8px);
+        }
+
+        .toast.success {
+            background: rgba(16, 185, 129, 0.95);
+        }
+        .toast.error {
+            background: rgba(239, 68, 68, 0.95);
+        }
+        .toast.info {
+            background: rgba(59, 130, 246, 0.95);
+        }
+
+        .toast .toast-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .header {
+                padding: 16px 20px;
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .panel {
+                padding: 16px 18px;
+            }
+            .login-box {
+                padding: 24px;
+            }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .invite-box {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .settings-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-container">
+            <div class="login-box">
+                <h2>🔐 Admin Access</h2>
+                <p class="sub">Benison Solvers Assessment Admin</p>
+                <div class="error" id="loginError">Invalid credentials. Please try again.</div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="admin@benisonsolvers.co.uk">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password">
+                </div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="login()">Login</button>
+                <p style="margin-top:16px;font-size:13px;color:var(--gray-400);text-align:center;">
+                    Default: admin@benisonsolvers.co.uk / admin123
+                </p>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" style="display:none;">
+            <div class="container">
+                <div class="header">
+                    <h1>📊 <span>Benison</span> Admin</h1>
+                    <div class="header-actions">
+                        <span class="user" id="adminUser"></span>
+                        <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card gold" onclick="switchTab('questions')">
+                        <div class="number" id="totalQuestions">0</div>
+                        <div class="label">📝 Questions</div>
+                    </div>
+                    <div class="stat-card blue" onclick="switchTab('invites')">
+                        <div class="number" id="totalInvites">0</div>
+                        <div class="label">📨 Invites</div>
+                    </div>
+                    <div class="stat-card green" onclick="switchTab('results')">
+                        <div class="number" id="totalCandidates">0</div>
+                        <div class="label">👤 Candidates</div>
+                    </div>
+                    <div class="stat-card red" onclick="switchTab('results')">
+                        <div class="number" id="violations">0</div>
+                        <div class="label">⚠️ Violations</div>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="questions" onclick="switchTab('questions')">📝 Questions</button>
+                    <button class="tab-btn" data-tab="invites" onclick="switchTab('invites')">📨 Invites</button>
+                    <button class="tab-btn" data-tab="results" onclick="switchTab('results')">📋 Results</button>
+                    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
+                </div>
+
+                <!-- Panel: Questions -->
+                <div class="panel active" id="panel-questions">
+                    <div class="toolbar">
+                        <h2 style="margin:0;font-size:18px;">📝 Question Bank</h2>
+                        <span style="font-size:13px;color:var(--gray-400);" id="questionCount">0 questions</span>
+                        <button class="btn btn-success" onclick="openAddQuestion()">+ Add Question</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th style="width:40px;">#</th><th>Question</th><th>Options</th><th style="width:70px;">Correct</th><th style="width:100px;">Actions</th></tr>
+                            </thead>
+                            <tbody id="questionsTableBody">
+                                <tr><td colspan="5" class="loading">Loading questions...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Panel: Invites -->
+                <div class="panel" id="panel-invites">
+                    <h2>📨 Manage Invites</h2>
+                    <div class="toolbar">
+                        <input type="text" id="inviteName" class="search-box" placeholder="Candidate Name" style="flex:0.5;">
+                        <input type="email" id="inviteEmail" class="search-box" placeholder="Candidate Email" style="flex:0.5;">
+                        <button class="btn btn-success" onclick="generateInvite()">📨 Generate</button>
+                        <button class="btn btn-ghost btn-sm" onclick="loadInvites()">🔄 Refresh</button>
+                    </div>
+                    <div id="invitesList">
+                        <div class="loading">Loading invites...</div>
+                    </div>
+                </div>
+
+                <!-- Panel: Results -->
+                <div class="panel" id="panel-results">
+                    <h2>📋 Candidate Results</h2>
+                    <div class="toolbar">
+                        <input type="text" id="searchResults" class="search-box" placeholder="🔍 Search by name or email..." oninput="loadResults()">
+                        <select id="filterStatus" onchange="loadResults()" style="padding:10px 14px;border:2px solid var(--gray-200);border-radius:var(--radius);font-family:inherit;background:var(--gray-50);">
+                            <option value="all">All Status</option>
+                            <option value="passed">✅ Passed</option>
+                            <option value="failed">❌ Failed</option>
+                        </select>
+                        <button class="btn btn-ghost btn-sm" onclick="exportResults()">📥 Export</button>
+                        <button class="btn btn-ghost btn-sm" onclick="refreshResults()">🔄 Refresh</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>Name</th><th>Email</th><th>Score</th><th>Status</th><th>Violations</th><th>Date</th></tr>
+                            </thead>
+                            <tbody id="resultsTableBody">
+                                <tr><td colspan="6" class="loading">Loading results...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Panel: Settings -->
+                <div class="panel" id="panel-settings">
+                    <h2>⚙️ Settings</h2>
+                    <div id="settingsContainer">
+                        <div class="loading">Loading settings...</div>
+                    </div>
+                    <div style="margin-top:20px;">
+                        <button class="btn btn-gold" onclick="saveSettings()">💾 Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Question -->
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">📝 Add Question</h3>
+            <input type="hidden" id="editQuestionId">
+            <div class="form-group">
+                <label>Question</label>
+                <textarea id="qText" rows="2" placeholder="Enter the question..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Options</label>
+                <input id="qOpt1" placeholder="Option A">
+                <input id="qOpt2" placeholder="Option B" style="margin-top:8px;">
+                <input id="qOpt3" placeholder="Option C" style="margin-top:8px;">
+                <input id="qOpt4" placeholder="Option D" style="margin-top:8px;">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Correct Answer</label>
+                    <select id="qCorrect">
+                        <option value="0">A - Option 1</option>
+                        <option value="1">B - Option 2</option>
+                        <option value="2">C - Option 3</option>
+                        <option value="3">D - Option 4</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty</label>
+                    <select id="qDifficulty">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate" selected>Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveQuestion()">💾 Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Candidate Details -->
+    <div class="modal" id="candidateModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <h3>👤 Candidate Details</h3>
+            <div id="candidateDetailContent">
+                <div class="loading">Loading...</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeCandidateModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ============================================================
+        // TOAST SYSTEM
+        // ============================================================
+        function showToast(message, type) {
+            type = type || 'info';
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            var icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️'
+            };
+            toast.innerHTML = '<span class="toast-icon">' + (icons[type] || 'ℹ️') + '</span> ' + message;
+            container.appendChild(toast);
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 4000);
+        }
+
+        // ============================================================
+        // SUPABASE CONFIG
+        // ============================================================
+        var SUPABASE_URL = "https://rbcjfecerhonpyyoxrre.supabase.co";
+        var SUPABASE_ANON_KEY = "sb_publishable_q-7geKIhAgKh8aiGPL9vLA_ZSGC7xeO";
+        var BASE_URL = "https://abhishek11221122.github.io/vat-bookkeeping-test/index.html";
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        var currentUser = null;
+        var questions = [];
+        var results = [];
+        var invites = [];
+        var settings = {};
+
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        function formatTime(seconds) {
+            var m = Math.floor(seconds / 60);
+            var s = seconds % 60;
+            return m + 'm ' + s + 's';
+        }
+
+        function getOptionsHTML(opts) {
+            var html = '';
+            for (var i = 0; i < opts.length; i++) {
+                html += String.fromCharCode(65 + i) + ') ' + opts[i];
+                if (i < opts.length - 1) html += ' | ';
+            }
+            return html;
+        }
+
+        // ============================================================
+        // SUPABASE FETCH
+        // ============================================================
+        function supabaseFetch(path, options) {
+            options = options || {};
+            var url = SUPABASE_URL + '/rest/v1/' + path;
+            var headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json'
+            };
+            if (options.headers) {
+                for (var key in options.headers) {
+                    headers[key] = options.headers[key];
+                }
+            }
+
+            return fetch(url, {
+                method: options.method || 'GET',
+                headers: headers,
+                body: options.body || null
+            }).then(function(response) {
+                if (!response.ok) {
+                    return response.text().then(function(text) {
+                        throw new Error('HTTP ' + response.status + ': ' + text);
+                    });
+                }
+                var contentType = response.headers.get('content-type') || '';
+                if (contentType.indexOf('application/json') === -1) {
+                    return [];
+                }
+                return response.json().catch(function() {
+                    return [];
+                });
+            });
+        }
+
+        // ============================================================
+        // AUTH
+        // ============================================================
+        function login() {
+            var email = document.getElementById('loginEmail').value.trim();
+            var password = document.getElementById('loginPassword').value.trim();
+            var err = document.getElementById('loginError');
+            if (email === 'admin@benisonsolvers.co.uk' && password === 'admin123') {
+                err.className = 'error';
+                currentUser = { email: email };
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('adminUser').textContent = '👤 ' + email;
+                loadDashboard();
+            } else {
+                err.className = 'error show';
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('loginEmail').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') login();
+        });
+
+        // ============================================================
+        // DASHBOARD
+        // ============================================================
+        function loadDashboard() {
+            return Promise.all([
+                loadQuestions(),
+                loadInvites(),
+                loadResults(),
+                loadSettings()
+            ]).then(function() {
+                updateStats();
+            }).catch(function(e) {
+                console.error('Dashboard error:', e);
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('totalQuestions').textContent = questions.length || 0;
+            document.getElementById('totalInvites').textContent = invites.length || 0;
+            document.getElementById('totalCandidates').textContent = results.length || 0;
+            var passed = 0;
+            for (var i = 0; i < results.length; i++) {
+                if (results[i].passed === true || results[i].passed === 'true') passed++;
+            }
+            document.getElementById('violations').textContent = results.reduce(function(sum, r) {
+                return sum + (r.violation_count || 0);
+            }, 0);
+        }
+
+        // ============================================================
+        // QUESTIONS
+        // ============================================================
+        function loadQuestions() {
+            return supabaseFetch('questions?order=id.asc').then(function(data) {
+                questions = data || [];
+                renderQuestions();
+            }).catch(function(e) {
+                console.error('Error loading questions:', e);
+                document.getElementById('questionsTableBody').innerHTML =
+                    '<tr><td colspan="5" style="color:var(--danger);text-align:center;">❌ Error loading questions. Make sure the "questions" table exists in Supabase.</td></tr>';
+            });
+        }
+
+        function renderQuestions() {
+            var tbody = document.getElementById('questionsTableBody');
+            document.getElementById('questionCount').textContent = (questions.length || 0) + ' questions';
+            if (!questions || questions.length === 0) {
+                tbody.innerHTML =
+                    '<tr><td colspan="5" class="empty-state"><span class="icon">📝</span>No questions yet. Click "Add Question" to get started.</td></tr>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < questions.length; i++) {
+                var q = questions[i];
+                var opts = q.options || q.opts || [];
+                var correct = q.correct_index || q.correct || 0;
+                html += '<tr>' +
+                    '<td>' + (i + 1) + '</td>' +
+                    '<td style="max-width:300px;">' + (q.question || q.q || '') + '</td>' +
+                    '<td style="font-size:12px;">' + getOptionsHTML(opts) + '</td>' +
+                    '<td><span style="font-weight:700;color:var(--success);">' + String.fromCharCode(65 + correct) +
+                    '</span></td>' +
+                    '<td>' +
+                    '<button class="btn btn-primary btn-sm" onclick="editQuestion(' + q.id + ')">✏️</button> ' +
+                    '<button class="btn btn-danger btn-sm" onclick="deleteQuestion(' + q.id + ')">🗑️</button>' +
+                    '</td></tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function openAddQuestion() {
+            document.getElementById('modalTitle').textContent = '📝 Add Question';
+            document.getElementById('editQuestionId').value = '';
+            document.getElementById('qText').value = '';
+            document.getElementById('qOpt1').value = '';
+            document.getElementById('qOpt2').value = '';
+            document.getElementById('qOpt3').value = '';
+            document.getElementById('qOpt4').value = '';
+            document.getElementById('qCorrect').value = '0';
+            document.getElementById('qDifficulty').value = 'intermediate';
+            document.getElementById('questionModal').className = 'modal show';
+        }
+
+        function editQuestion(id) {
+            var q = null;
+            for (var i = 0; i < questions.length; i++) {
+                if (questions[i].id === id) { q = questions[i];
+                    break; }
+            }
+            if (!q) return;
+            document.getElementById('modalTitle').textContent = '✏️ Edit Question';
+            document.getElementById('editQuestionId').value = id;
+            document.getElementById('qText').value = q.question || q.q || '';
+            var opts = q.options || q.opts || ['', '', '', ''];
+            document.getElementById('qOpt1').value = opts[0] || '';
+            document.getElementById('qOpt2').value = opts[1] || '';
+            document.getElementById('qOpt3').value = opts[2] || '';
+            document.getElementById('qOpt4').value = opts[3] || '';
+            document.getElementById('qCorrect').value = q.correct_index || q.correct || 0;
+            document.getElementById('qDifficulty').value = q.difficulty || 'intermediate';
+            document.getElementById('questionModal').className = 'modal show';
+        }
+
+        function saveQuestion() {
+            var id = document.getElementById('editQuestionId').value;
+            var question = document.getElementById('qText').value.trim();
+            var options = [
+                document.getElementById('qOpt1').value.trim(),
+                document.getElementById('qOpt2').value.trim(),
+                document.getElementById('qOpt3').value.trim(),
+                document.getElementById('qOpt4').value.trim()
+            ];
+            var correct_index = parseInt(document.getElementById('qCorrect').value);
+            var difficulty = document.getElementById('qDifficulty').value;
+
+            if (!question) { showToast('Please enter a question.', 'error'); return; }
+            for (var i = 0; i < options.length; i++) {
+                if (!options[i]) { showToast('Please fill in all options.', 'error'); return; }
+            }
+
+            var data = { question: question, options: options, correct_index: correct_index, difficulty: difficulty };
+
+            var promise;
+            if (id) {
+                promise = supabaseFetch('questions?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(data) });
+            } else {
+                promise = supabaseFetch('questions', { method: 'POST', body: JSON.stringify(data) });
+            }
+            promise.then(function() {
+                closeModal();
+                return loadQuestions();
+            }).then(function() {
+                updateStats();
+                showToast(id ? '✅ Question updated!' : '✅ Question added!', 'success');
+            }).catch(function(e) {
+                showToast('Error: ' + e.message, 'error');
+                console.error(e);
+            });
+        }
+
+        function deleteQuestion(id) {
+            if (!confirm('⚠️ Delete this question?')) return;
+            supabaseFetch('questions?id=eq.' + id, { method: 'DELETE' }).then(function() {
+                return loadQuestions();
+            }).then(function() {
+                updateStats();
+                showToast('🗑️ Deleted!', 'success');
+            }).catch(function(e) {
+                showToast('Error: ' + e.message, 'error');
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('questionModal').className = 'modal';
+        }
+
+        // ============================================================
+        // INVITES
+        // ============================================================
+        function loadInvites() {
+            return supabaseFetch('invites?order=created_at.desc').then(function(data) {
+                invites = data || [];
+                renderInvites();
+            }).catch(function(e) {
+                console.error('Error loading invites:', e);
+                document.getElementById('invitesList').innerHTML =
+                    '<div style="color:var(--danger);padding:20px;">❌ Error loading invites. Make sure the "invites" table exists in Supabase.</div>';
+            });
+        }
+
+        function renderInvites() {
+            var container = document.getElementById('invitesList');
+            if (!invites || invites.length === 0) {
+                container.innerHTML =
+                    '<div class="empty-state"><span class="icon">📨</span>No invites yet. Generate your first invite above.</div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < invites.length; i++) {
+                var inv = invites[i];
+                var isUsed = inv.used === true || inv.used === 'true';
+                var link = BASE_URL + '?token=' + inv.token + '&name=' + encodeURIComponent(inv.name) + '&email=' +
+                    encodeURIComponent(inv.email);
+                html += '<div class="invite-box">' +
+                    '<div class="info">' +
+                    '<div class="name">' + inv.name + '</div>' +
+                    '<div class="email">' + inv.email + '</div>' +
+                    '<div style="font-size:12px;color:var(--gray-400);margin-top:4px;">' + (isUsed ? '✅ Used' : '⏳ Pending') +
+                    ' · ' + new Date(inv.created_at).toLocaleDateString() + '</div>' +
+                    '</div>' +
+                    '<div class="link"><a href="' + link + '" target="_blank">' + link + '</a></div>' +
+                    '<div><button class="copy-btn" onclick="copyLink(\'' + link + '\')">📋 Copy</button>' +
+                    (!isUsed ? ' <button class="btn btn-danger btn-sm" onclick="deleteInvite(' + inv.id +
+                        ')">🗑️</button>' : '') +
+                    '</div></div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function generateInvite() {
+            var name = document.getElementById('inviteName').value.trim();
+            var email = document.getElementById('inviteEmail').value.trim();
+            if (!name || !email) { showToast('Please enter name and email.', 'error'); return; }
+            var token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            var data = { name: name, email: email, token: token, used: false };
+            supabaseFetch('invites', { method: 'POST', body: JSON.stringify(data) }).then(function(result) {
+                document.getElementById('inviteName').value = '';
+                document.getElementById('inviteEmail').value = '';
+                return loadInvites();
+            }).then(function() {
+                updateStats();
+                showToast('✅ Invite sent to ' + name + '!', 'success');
+            }).catch(function(e) {
+                showToast('Error: ' + e.message, 'error');
+                console.error(e);
+            });
+        }
+
+        function deleteInvite(id) {
+            if (!confirm('Delete this invite?')) return;
+            supabaseFetch('invites?id=eq.' + id, { method: 'DELETE' }).then(function() {
+                return loadInvites();
+            }).then(function() {
+                updateStats();
+                showToast('🗑️ Deleted!', 'success');
+            }).catch(function(e) {
+                showToast('Error: ' + e.message, 'error');
+            });
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(function() {
+                showToast('📋 Copied!', 'success');
+            }).catch(function() {
+                var ta = document.createElement('textarea');
+                ta.value = link;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                showToast('📋 Copied!', 'success');
+            });
+        }
+
+        // ============================================================
+        // RESULTS
+        // ============================================================
+        function loadResults() {
+            var search = document.getElementById('searchResults').value || '';
+            var filter = document.getElementById('filterStatus').value || 'all';
+            var url = 'candidates?order=created_at.desc';
+            if (search) url += '&or=(name.ilike.*' + search + '*,email.ilike.*' + search + '*)';
+            return supabaseFetch(url).then(function(data) {
+                results = data || [];
+                renderResults(filter);
+            }).catch(function(e) {
+                console.error('Error loading results:', e);
+                document.getElementById('resultsTableBody').innerHTML =
+                    '<tr><td colspan="6" style="color:var(--danger);text-align:center;">❌ Error loading results: ' +
+                    e.message + '</td></tr>';
+            });
+        }
+
+        function refreshResults() {
+            document.getElementById('searchResults').value = '';
+            document.getElementById('filterStatus').value = 'all';
+            loadResults();
+        }
+
+        function renderResults(filter) {
+            var tbody = document.getElementById('resultsTableBody');
+            var filtered = results;
+            if (filter === 'passed') {
+                filtered = results.filter(function(r) { return r.passed === true || r.passed === 'true'; });
+            } else if (filter === 'failed') {
+                filtered = results.filter(function(r) { return r.passed !== true && r.passed !== 'true'; });
+            }
+            if (!filtered || filtered.length === 0) {
+                tbody.innerHTML =
+                    '<tr><td colspan="6" class="empty-state"><span class="icon">📋</span>No results found.</td></tr>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < filtered.length; i++) {
+                var r = filtered[i];
+                html += '<tr class="clickable" onclick="viewCandidateDetails(' + r.id + ')">' +
+                    '<td><strong>' + (r.name || 'N/A') + '</strong></td>' +
+                    '<td>' + (r.email || 'N/A') + '</td>' +
+                    '<td><strong>' + (r.score_percent || 0) + '%</strong> (' + (r.correct || 0) + '/' + (r.total || 0) +
+                    ')</td>' +
+                    '<td><span class="' + (r.passed === true || r.passed === 'true' ? 'badge-pass' : 'badge-fail') +
+                    '">' + (r.passed === true || r.passed === 'true' ? '✅ PASSED' : '❌ FAILED') + '</span></td>' +
+                    '<td><span class="' + (r.violation_count > 0 ? 'badge-violation' : '') + '">' + (r.violation_count ||
+                        0) + '</span></td>' +
+                    '<td style="font-size:13px;color:var(--gray-400);">' + (r.created_at ? new Date(r.created_at)
+                        .toLocaleDateString() : 'N/A') + '</td></tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        // ============================================================
+        // VIEW CANDIDATE DETAILS
+        // ============================================================
+        function viewCandidateDetails(id) {
+            var candidate = null;
+            for (var i = 0; i < results.length; i++) {
+                if (results[i].id === id) { candidate = results[i];
+                    break; }
+            }
+            if (!candidate) { showToast('Candidate not found', 'error'); return; }
+
+            var violationList = [];
+            if (candidate.violation_log) {
+                violationList = candidate.violation_log.split(' | ').filter(function(v) { return v && v !== 'None'; });
+            }
+
+            var detailedAnswers = [];
+            if (candidate.detailed_answers) {
+                try {
+                    detailedAnswers = JSON.parse(candidate.detailed_answers);
+                } catch (e) {
+                    console.error('Error parsing detailed answers:', e);
+                }
+            }
+
+            var content = document.getElementById('candidateDetailContent');
+
+            var html = '<div class="candidate-detail">' +
+                '<div class="row"><span class="label">👤 Name</span><span class="value">' + (candidate.name || 'N/A') +
+                '</span></div>' +
+                '<div class="row"><span class="label">📧 Email</span><span class="value">' + (candidate.email || 'N/A') +
+                '</span></div>' +
+                '<div class="row"><span class="label">📱 Phone</span><span class="value">' + (candidate.phone || 'N/A') +
+                '</span></div>' +
+                '<div class="row"><span class="label">💼 Role</span><span class="value">' + (candidate.role || 'N/A') +
+                '</span></div>' +
+                '<div class="row"><span class="label">📊 Score</span><span class="value" style="font-weight:700;color:' +
+                (candidate.passed ? 'var(--success)' : 'var(--danger)') + ';">' + (candidate.score_percent || 0) +
+                '% (' + (candidate.correct || 0) + '/' + (candidate.total || 0) + ')</span></div>' +
+                '<div class="row"><span class="label">✅ Status</span><span class="value"><span class="' + (candidate
+                    .passed ? 'badge-pass' : 'badge-fail') + '">' + (candidate.passed ? '✅ PASSED' : '❌ FAILED') +
+                '</span></span></div>' +
+                '<div class="row"><span class="label">⏱️ Time Taken</span><span class="value">' + (candidate
+                    .time_taken_seconds ? formatTime(candidate.time_taken_seconds) : 'N/A') + '</span></div>' +
+                '<div class="row"><span class="label">⚠️ Violations</span><span class="value">' + (candidate
+                    .violation_count || 0) + '</span></div>';
+
+            if (candidate.multi_monitor_detected) {
+                html += '<div class="row" style="color:var(--danger);"><span class="label">🖥️ Multi-Monitor</span><span class="value">Detected</span></div>';
+            }
+
+            html += '<div class="row"><span class="label">📅 Submitted</span><span class="value">' + (candidate
+                    .created_at ? new Date(candidate.created_at).toLocaleString() : 'N/A') + '</span></div>' +
+                '<div class="row"><span class="label">📝 Reason</span><span class="value">' + (candidate
+                    .submission_reason || 'N/A') + '</span></div></div>';
+
+            if (detailedAnswers.length > 0) {
+                html += '<h4 style="margin-top:16px;margin-bottom:12px;">📝 Answer Breakdown</h4>';
+                var correctCount = 0;
+                for (var a = 0; a < detailedAnswers.length; a++) {
+                    var ans = detailedAnswers[a];
+                    var isCorrect = ans.isCorrect === true || ans.isCorrect === 'true';
+                    if (isCorrect) correctCount++;
+                    var statusClass = isCorrect ? 'correct' : 'wrong';
+                    var statusIcon = isCorrect ? '✅' : '❌';
+                    var userAnswerText = ans.userAnswer || 'Not answered';
+                    var correctAnswerText = ans.correctAnswer || 'N/A';
+
+                    html += '<div class="answer-review-item ' + statusClass + '">' +
+                        '<div class="q-text">' + statusIcon + ' Q' + (a + 1) + ': ' + (ans.question || 'Question ' + (
+                            a + 1)) + '</div>' +
+                        '<div class="q-answer">' +
+                        'Your answer: <span style="font-weight:600;color:' + (isCorrect ? 'var(--success)' :
+                            'var(--danger)') + ';">' + userAnswerText + '</span>' +
+                        (isCorrect ? '' : ' · Correct: <span style="font-weight:600;color:var(--success);">' +
+                            correctAnswerText + '</span>') +
+                        '</div></div>';
+                }
+                html += '<div style="margin-top:12px;padding:12px;background:var(--gray-50);border-radius:var(--radius);text-align:center;font-size:14px;font-weight:600;">' +
+                    '📊 ' + correctCount + '/' + detailedAnswers.length + ' questions correct' +
+                    '</div>';
+            } else {
+                html += '<div style="margin-top:16px;padding:12px;background:var(--warning-light);border-radius:var(--radius);border-left:4px solid var(--warning);font-size:13px;">' +
+                    '📝 No detailed answers available. This candidate may have taken the test before the detailed answers feature was added.' +
+                    '</div>';
+            }
+
+            if (violationList.length > 0) {
+                html += '<h4 style="margin-top:16px;color:var(--danger);">⚠️ Violation Log</h4>';
+                for (var v = 0; v < violationList.length; v++) {
+                    html += '<div style="padding:8px 12px;background:var(--danger-light);border-radius:var(--radius);margin-bottom:4px;font-size:13px;border-left:3px solid var(--danger);">' +
+                        violationList[v] + '</div>';
+                }
+            } else {
+                html += '<div style="padding:12px;background:var(--success-light);border-radius:var(--radius);margin-top:12px;border-left:3px solid var(--success);">✅ No violations recorded</div>';
+            }
+
+            content.innerHTML = html;
+            document.getElementById('candidateModal').className = 'modal show';
+        }
+
+        function closeCandidateModal() {
+            document.getElementById('candidateModal').className = 'modal';
+        }
+
+        // ============================================================
+        // EXPORT
+        // ============================================================
+        function exportResults() {
+            if (!results || results.length === 0) { showToast('No results to export.', 'error'); return; }
+            var csv = 'Name,Email,Phone,Role,Score,Passed,Violations,Time Taken,Date\n';
+            for (var i = 0; i < results.length; i++) {
+                var r = results[i];
+                csv += '"' + (r.name || '') + '","' + (r.email || '') + '","' + (r.phone || '') + '","' + (r.role || '') +
+                    '",' + (r.score_percent || 0) + ',' + (r.passed ? 'Yes' : 'No') + ',' + (r.violation_count || 0) +
+                    ',"' + (r.time_taken_seconds ? formatTime(r.time_taken_seconds) : '') + '","' + (r.created_at ?
+                        new Date(r.created_at).toLocaleString() : '') + '"\n';
+            }
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'results_' + new Date().toISOString().split('T')[0] + '.csv';
+            link.click();
+            showToast('📥 Exported!', 'success');
+        }
+
+        // ============================================================
+        // SETTINGS
+        // ============================================================
+        function loadSettings() {
+            return supabaseFetch('assessment_settings?limit=1').then(function(data) {
+                if (data && data.length > 0) {
+                    settings = data[0];
+                } else {
+                    settings = { pass_threshold: 50, test_duration_seconds: 480, max_violations: 3 };
+                }
+                renderSettings();
+            }).catch(function(e) {
+                console.error('Error loading settings:', e);
+                document.getElementById('settingsContainer').innerHTML =
+                    '<div style="color:var(--danger);">Error loading settings: ' + e.message + '</div>';
+            });
+        }
+
+        function renderSettings() {
+            document.getElementById('settingsContainer').innerHTML =
+                '<div class="settings-group">' +
+                '<div class="info"><div class="title">🎯 Passing Score</div><div class="desc">Minimum percentage required to pass</div></div>' +
+                '<div><input type="number" id="settingPassThreshold" value="' + (settings.pass_threshold || 50) +
+                '" min="0" max="100"> %</div></div>' +
+                '<div class="settings-group">' +
+                '<div class="info"><div class="title">⏱️ Duration</div><div class="desc">Time allowed in minutes</div></div>' +
+                '<div><input type="number" id="settingDuration" value="' + Math.round((settings
+                    .test_duration_seconds || 480) / 60) + '" min="1" max="60"> minutes</div></div>' +
+                '<div class="settings-group">' +
+                '<div class="info"><div class="title">🚫 Max Violations</div><div class="desc">Before auto-submission</div></div>' +
+                '<div><input type="number" id="settingMaxViolations" value="' + (settings.max_violations || 3) +
+                '" min="1" max="10"></div></div>';
+        }
+
+        function saveSettings() {
+            var pass_threshold = parseInt(document.getElementById('settingPassThreshold').value);
+            var test_duration_seconds = parseInt(document.getElementById('settingDuration').value) * 60;
+            var max_violations = parseInt(document.getElementById('settingMaxViolations').value);
+            if (isNaN(pass_threshold) || isNaN(test_duration_seconds) || isNaN(max_violations)) {
+                showToast('Please enter valid numbers.', 'error');
+                return;
+            }
+            var data = { pass_threshold: pass_threshold, test_duration_seconds: test_duration_seconds,
+            max_violations: max_violations };
+            var promise;
+            if (settings.id) {
+                promise = supabaseFetch('assessment_settings?id=eq.' + settings.id, { method: 'PATCH', body: JSON
+                        .stringify(data) });
+            } else {
+                promise = supabaseFetch('assessment_settings', { method: 'POST', body: JSON.stringify(data) });
+            }
+            promise.then(function() {
+                return loadSettings();
+            }).then(function() {
+                showToast('✅ Settings saved!', 'success');
+            }).catch(function(e) {
+                showToast('Error: ' + e.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // TAB SWITCHING
+        // ============================================================
+        function switchTab(tab) {
+            var tabs = document.querySelectorAll('.tab-btn');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].className = 'tab-btn';
+            }
+            var activeTab = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+            if (activeTab) activeTab.className = 'tab-btn active';
+            var panels = document.querySelectorAll('.panel');
+            for (var p = 0; p < panels.length; p++) {
+                panels[p].className = 'panel';
+            }
+            var panel = document.getElementById('panel-' + tab);
+            if (panel) panel.className = 'panel active';
+            if (tab === 'invites') loadInvites();
+            if (tab === 'results') loadResults();
+            if (tab === 'settings') loadSettings();
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('adminPanel').style.display = 'none';
+        console.log('🔐 Benison Solvers Admin Panel');
+        console.log('🔗 Connected to Supabase:', SUPABASE_URL);
+        console.log('📨 Invite links will point to:', BASE_URL);
+    </script>
+</body>
+</html>
